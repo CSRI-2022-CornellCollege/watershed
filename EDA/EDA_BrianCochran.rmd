@@ -1,0 +1,67 @@
+---
+title: "EDA_BrianCochran"
+author: "Brian Cochran"
+date: "5/16/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(GGally)
+```
+
+
+``` {r read-data, warning=F}
+data <- read_csv("../Data/combined_data.csv")
+
+data[4:14] <- sapply(data[4:14], as.numeric)
+names(data)[c(12,14)] <- c("NO3_N", "E_coli")
+```
+
+
+``` {r all-plots, warning=F}
+ggpairs(data[4:14])
+```
+
+Graph of SO4 and Cl.
+``` {r SO4-Cl, warning=F}
+temp_data <- filter(data, !(is.na(SO4) | is.na(Cl)))
+fit <- lm(Cl~SO4, data=temp_data)
+pred <- data.frame(Cl=predict(fit, temp_data), SO4=temp_data$SO4)
+data %>%
+  ggplot()+
+  geom_point(aes(x=SO4, y=Cl))+
+  geom_line(data=pred, aes(x=SO4, y=Cl), color="red", size=1)
+```
+
+Graph of Temp and NO3_N. It appears to somewhat follow the fit seen on the graph. Clearly temperature has some predictive power when it comes to predicting NO3_N levels.
+``` {r Temp-NO3_N, warning=F}
+temp_data <- filter(data, !(is.na(Temp) | is.na(NO3_N)))
+fit <- lm(NO3_N~poly(Temp, 3), data=temp_data)
+pred <- data.frame(NO3_N=predict(fit, temp_data), Temp=temp_data$Temp)
+data %>%
+  ggplot()+
+  geom_point(aes(x=Temp, y=NO3_N))+
+  geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)
+```
+
+
+
+There are many sites with only one observation.
+``` {r by-site}
+print(data %>% count(Site) %>% arrange(n), n=100)
+```
+
+
+``` {r by-date}
+site_counts <- data %>%
+  count(Site)
+
+
+data %>%
+  filter(sum(data$Site==Site)>1) %>%
+  ggplot(aes(x=Date, y=SO4, color=Site))+
+  geom_line()
+```
