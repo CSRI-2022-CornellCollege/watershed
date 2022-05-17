@@ -1,0 +1,113 @@
+---
+title: "prelim_EDA_watershed_emma"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data-load}
+watershed <- read.csv("Data/combined_data.csv")
+
+watershed[4:14] <- sapply(watershed[4:14], as.numeric)
+names(watershed)[c(12,14)] <- c("NO3_N", "E_coli")
+```
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(tidymodels)
+```
+
+## R Markdown
+
+``` {r site-count}
+watershed %>% 
+  count(Site) %>% 
+  arrange(desc(n))
+```
+
+```{r graphing-Cl}
+
+ggplot(watershed, aes(x = Cl, color = Site)) +
+  geom_histogram()
+```
+
+```{r og-river-shit}
+og_rivers <- watershed %>% 
+filter(Site == c("Bear", "Blue", "Lime", "Morgan", "Mud", "N.Bear", "Otter"))
+```
+
+``` {r all-river-TSS-stats}
+watershed %>% 
+  group_by(Site) %>% 
+  summarise(
+            min = min(TSS, na.rm = TRUE),
+            max = max(TSS, na.rm = TRUE),
+            mean = mean(TSS, na.rm = TRUE),
+            median = median(TSS, na.rm = TRUE),
+            sd = sd(TSS, na.rm = TRUE)
+            )
+```
+
+``` {r og-river-TSS-stats}
+og_rivers %>% 
+  group_by(Site) %>% 
+  summarise(
+            min = min(TSS, na.rm = TRUE),
+            max = max(TSS, na.rm = TRUE),
+            mean = mean(TSS, na.rm = TRUE),
+            median = median(TSS, na.rm = TRUE),
+            sd = sd(TSS, na.rm = TRUE)
+            )
+```
+
+``` {r temp-vs-ph}
+ggplot(watershed, aes(x = Temp, y = pH)) +
+         geom_point()
+```
+
+Graph of temp vs ph could be vaguely linear but show no clear correlation.
+
+``` {r temp-vs-no3}
+ggplot(watershed, aes(x = Temp, y = NO3_N)) +
+         geom_point()
+
+temp_vs_no3_fit <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(NO3_N ~ Temp, data = watershed)
+  tidy(temp_vs_no3_fit)
+  
+glance(temp_vs_no3_fit)
+```
+
+Graph of temp vs. NO3 has a slightly negative, linear relationship (fans out in lower temps and narrows in higher temps - transform data?), indicating that as temperature increases, NO3 levels decrease.
+
+``` {r temp-vs-DO}
+ggplot(watershed, aes(x = Temp, y = DO)) +
+         geom_point()
+
+temp_vs_DO_fit <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(DO ~ Temp, data = watershed)
+  tidy(temp_vs_DO_fit)
+  
+glance(temp_vs_DO_fit)
+```
+
+Graph of temp vs. DO (dissolved oxygen?) shows a slightly negative, linear relationship. This indicates that as temperature increases, the levels of dissolved oxygen decrease. This is consistent with the packet and with how solubility works (solubility of a gas in liquid decreases as temperature increases). The linear model has an r-squared adj. of ~0.28, indicating that about 28% of the change in DO levels is explained by the change in temperature.
+
+``` {r NO3-vs-ecoli}
+ggplot(watershed, aes(x = NO3_N, y = E_coli)) +
+         geom_point()
+
+no3_vs_ecoli_fit <- linear_reg() %>% 
+  set_engine("lm") %>% 
+  fit(E_coli ~ NO3_N, data = watershed)
+  tidy(no3_vs_ecoli_fit)
+  
+glance(no3_vs_ecoli_fit)
+```
+
+Graph of NO3_N vs E_coli has no clear pattern and a very low r-squared, indicating that NO3 levels aren't correlated with E.coli levels. I had expected that E.coli levels would increases as NO3 levels increase because nitrates are a source of nurients for algae/bacteria, and because the papers and packet describe how increasing nitrate levels cause algal blooms/eutrophication. It's possible the data needs to be transformed.
