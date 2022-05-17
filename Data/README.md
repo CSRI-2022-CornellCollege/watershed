@@ -48,7 +48,7 @@ This data is from 2012-2016. It contains the variables in the following table.
 | Cl | Chloride | mg Cl/L |
 | NO3-N | Nitrate Nitrogen | mg NO3-N/L |
 | SO4/L | Sulfate | mg SO4/L |
-| E coli | Colony Forming Units of E. Coli | CFU/100 mL |
+| E coli | Colony Forming Units of E. coli | CFU/100 mL |
 
 
 ### 2017_21Data.xlsx
@@ -71,5 +71,5 @@ This data is from 2017-2021. It contains the varaibles in the following table.
 | Cl | Chloride | mg Cl/L |
 | NO3-N | Nitrate Nitrogen | mg NO3-N/L |
 | SO4/L | Sulfate | mg SO4/L |
-| E coli | Colony Forming Units of E. Coli | CFU/100 mL |
+| E coli | Colony Forming Units of E. coli | CFU/100 mL |
 
