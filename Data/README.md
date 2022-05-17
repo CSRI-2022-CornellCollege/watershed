@@ -73,3 +73,30 @@ This data is from 2017-2021. It contains 457 observations with the variables in 
 | SO4/L | Sulfate | mg SO4/L |
 | E coli | Colony Forming Units of E. coli | CFU/100 mL |
 
+
+### combined_data.csv
+This dataset is a combination of three datasets described above. It contains 3988 observations with the same 14 variables as the 2012-2016 and 2017-2021 datasets. The 2002-2011 dataset was given columns of NAs for the missing variables.
+
+
+### combined_data_clean.csv
+This dataset contains 3987 observations and 15 variables. The watershed variable was added, the date column was fixed, appropriate values were set to be numeric, and some site names were changed. One row which had all NAs except for the site variable was removed.
+
+#### Variables and Units
+#### Variables and Units
+| Variable | Meaning | Units |
+|----------|---------|-------|
+| Watershed | Which watershed the site is in | NA |
+| Site | Where sample was taken | N/A |
+| Date | Date sample was taken | N/A |
+| Time | Time sample was taken | N/A |
+| DO | Dissolved Oxygen | mg/L |
+| Temp | Temperature of Water? | Degrees Celsius |
+| pH | Acidity | Logarithmic Scale |
+| Cond | Conductivity | ? |
+| Turbidity | Clarity of Water | ? |
+| TSS | Total Suspended Solids | mg/L |
+| DRP | Dissolved Reactive Phosphorus | mg PO4/L |
+| Cl | Chloride | mg Cl/L |
+| NO3-N | Nitrate Nitrogen | mg NO3-N/L |
+| SO4/L | Sulfate | mg SO4/L |
+| E coli | Colony Forming Units of E. coli | CFU/100 mL |
