@@ -14,15 +14,12 @@ library(GGally)
 
 
 ``` {r read-data, warning=F}
-data <- read_csv("../Data/combined_data.csv")
-
-data[4:14] <- sapply(data[4:14], as.numeric)
-names(data)[c(12,14)] <- c("NO3_N", "E_coli")
+data <- read_csv("../Data/combined_data_clean.csv")
 ```
 
 
 ``` {r all-plots, warning=F}
-ggpairs(data[4:14])
+ggpairs(data[3:14])
 ```
 
 Graph of SO4 and Cl.
@@ -56,12 +53,7 @@ print(data %>% count(Site) %>% arrange(n), n=100)
 
 
 ``` {r by-date}
-site_counts <- data %>%
-  count(Site)
-
-
 data %>%
-  filter(sum(data$Site==Site)>1) %>%
-  ggplot(aes(x=Date, y=SO4, color=Site))+
+  ggplot(aes(x=Date, y=Cl, color=Watershed))+
   geom_line()
 ```
