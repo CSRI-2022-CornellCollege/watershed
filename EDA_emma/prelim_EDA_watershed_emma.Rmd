@@ -8,10 +8,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r data-load}
-watershed <- read.csv("../Data/combined_data.csv")
+watershed <- read.csv("../Data/combined_data_clean.csv")
 
 watershed[4:14] <- sapply(watershed[4:14], as.numeric)
-names(watershed)[c(12,14)] <- c("NO3_N", "E_coli")
 ```
 
 ```{r load-packages, message=FALSE}
@@ -34,35 +33,6 @@ ggplot(watershed, aes(x = Cl)) +
   geom_histogram()
 ```
 
-```{r og-river-shit}
-og_rivers <- watershed %>% 
-filter(Site == c("Bear", "Blue", "Lime", "Morgan", "Mud", "N.Bear", "Otter"))
-```
-
-``` {r all-river-TSS-stats}
-watershed %>% 
-  group_by(Site) %>% 
-  summarise(
-            min = min(TSS, na.rm = TRUE),
-            max = max(TSS, na.rm = TRUE),
-            mean = mean(TSS, na.rm = TRUE),
-            median = median(TSS, na.rm = TRUE),
-            sd = sd(TSS, na.rm = TRUE)
-            )
-```
-
-``` {r og-river-TSS-stats}
-og_rivers %>% 
-  group_by(Site) %>% 
-  summarise(
-            min = min(TSS, na.rm = TRUE),
-            max = max(TSS, na.rm = TRUE),
-            mean = mean(TSS, na.rm = TRUE),
-            median = median(TSS, na.rm = TRUE),
-            sd = sd(TSS, na.rm = TRUE)
-            )
-```
-
 ``` {r temp-vs-ph}
 ggplot(watershed, aes(x = Temp, y = pH)) +
          geom_point()
@@ -71,8 +41,9 @@ ggplot(watershed, aes(x = Temp, y = pH)) +
 Graph of temp vs ph could be vaguely linear but show no clear correlation.
 
 ``` {r temp-vs-no3}
-ggplot(watershed, aes(x = Temp, y = NO3_N)) +
-         geom_point()
+ggplot(watershed, aes(x = Temp, y = NO3_N)) + 
+  geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 
 temp_vs_no3_fit <- linear_reg() %>% 
   set_engine("lm") %>% 
@@ -83,6 +54,18 @@ glance(temp_vs_no3_fit)
 ```
 
 Graph of temp vs. NO3 has a slightly negative, linear relationship (fans out in lower temps and narrows in higher temps - transform data?), indicating that as temperature increases, NO3 levels decrease.
+
+
+``` {r log-temp-vs-no3}
+
+ggplot(watershed, aes(x = Temp, y = log(NO3_N))) + 
+  geom_point()+
+  geom_smooth(method=lm, se=FALSE)
+
+```
+
+The graph of log(NO3_N) vs. temp looks a little beter than the untransformed version (there's less of a cone shape in this graph) but looks like it has a slight curve (concave). The relationship appears stronger and it's still negative.
+
 
 ``` {r temp-vs-DO}
 ggplot(watershed, aes(x = Temp, y = DO)) +
@@ -111,3 +94,53 @@ glance(no3_vs_ecoli_fit)
 ```
 
 Graph of NO3_N vs E_coli has no clear pattern and a very low r-squared, indicating that NO3 levels aren't correlated with E.coli levels. I had expected that E.coli levels would increases as NO3 levels increase because nitrates are a source of nurients for algae/bacteria, and because the papers and packet describe how increasing nitrate levels cause algal blooms/eutrophication. It's possible the data needs to be transformed.
+
+``` {r zoom-NO3-vs-ecoli}
+ggplot(watershed, aes(x = NO3_N, y = E_coli)) +
+         geom_point(alpha = 0.5)+
+  coord_cartesian(ylim=c(0,2500))
+```
+
+I tried zooming in on the graph (I may have been overenthusiastic) to see if there was a pattern I was missing, but the graph is still inconclusive (no clear pattern). There's probably some kind of transformation I could do but I'm not sure what - there may just be not much of a relationship or some other factor affecting the graph. 
+
+``` {r log-NO3-vs-ecoli}
+ggplot(watershed, aes(x = NO3_N, y = log(E_coli))) +
+         geom_point(alpha = 0.5) +
+   geom_smooth(method=lm, se=FALSE)
+```
+
+I tried transforming the data and it does look better, but still does not show a strong relationship (also I probably broke some kind of stats rule). The line of best fit shows a negative relationship, which is the opposite of what I would expect.
+
+``` {r cond-vs-cl}
+ggplot(watershed, aes(x = Cl, y = Cond)) +
+         geom_point()
+```
+
+``` {r cond-vs-so4}
+ggplot(watershed, aes(x = SO4, y = Cond)) +
+         geom_point()
+```
+
+The two scatterplots above are related. The packet mentions that "the highest value of conductivity are matched by the top average values of chloride and sulfate", which makes sense to me since the presence of ions (like Cl and SO4) in water is what makes it conductive. I expected to see a positive relationship between Cl and Cond and SO4 and Cond. Both graphs look vaguely positive (the graph of Cond vs. SO4 looks better - more linear) but neither show an especially clear relationship. 
+
+``` {r cond-vs-log-cl}
+ggplot(watershed, aes(x = log(Cl), y = Cond)) +
+         geom_point()
+```
+
+``` {r cond-vs-log-so4}
+ggplot(watershed, aes(x = log(SO4), y = Cond)) +
+         geom_point()
+```
+
+I transformed the data for both graphs using log. They look slightly better but there's no big difference. 
+
+
+``` {r date-no3, eval = FALSE}
+ggplot(watershed, aes(x = Date, y = NO3_N)) +
+  geom_line()+
+  coord_cartesian(xlim = c(
+  
+```
+
+Unfinished code chunk where I'm trying to match Figure 2. in the packet (or at least create something similar with dates on the x-axis). Struggling with how to deal with the dates, and need to narrow the scope of the graph (do it year by year, probably). Could be good to put into shiny -- input is year and it outputs a date vs. NO3_N levels graph for that year. Could maybe have different options for y-axis too (how does Cl, SO4, etc. change across time)
