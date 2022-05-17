@@ -30,7 +30,7 @@ This data is from 2002-2011. It contains 2717 observations with the variables in
 
 
 ### 2012-16data.xlsx
-This data is from 2012-2016. It contains the variables in the following table.
+This data is from 2012-2016. It contains 862 observations with the variables in the following table.
 
 #### Variables and Units
 | Variable | Meaning | Units |
@@ -52,7 +52,7 @@ This data is from 2012-2016. It contains the variables in the following table.
 
 
 ### 2017_21Data.xlsx
-This data is from 2017-2021. It contains the varaibles in the following table.
+This data is from 2017-2021. It contains 457 observations with the variables in the following table.
 
 #### Variables and Units
 #### Variables and Units
