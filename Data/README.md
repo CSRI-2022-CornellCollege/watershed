@@ -38,11 +38,11 @@ This data is from 2012-2016. It contains 862 observations with the variables in 
 | Site | Where sample was taken | N/A |
 | Date | Date sample was taken | N/A |
 | Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen? | ? |
+| DO | Dissolved Oxygen | mg/L |
 | Temp | Temperature of Water? | Degrees Celsius |
 | pH | Acidity | Logarithmic Scale |
 | Cond | Conductivity | ? |
-| Turbidity | How fast water is moving | ? |
+| Turbidity | Clarity of Water | ? |
 | TSS | Total Suspended Solids | mg/L |
 | DRP | Dissolved Reactive Phosphorus | mg PO4/L |
 | Cl | Chloride | mg Cl/L |
@@ -61,11 +61,11 @@ This data is from 2017-2021. It contains 457 observations with the variables in 
 | Site | Where sample was taken | N/A |
 | Date | Date sample was taken | N/A |
 | Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen? | ? |
+| DO | Dissolved Oxygen | mg/L |
 | Temp | Temperature of Water? | Degrees Celsius |
 | pH | Acidity | Logarithmic Scale |
 | Cond | Conductivity | ? |
-| Turbidity | How fast water is moving | ? |
+| Turbidity | Clarity of Water | ? |
 | TSS | Total Suspended Solids | mg/L |
 | DRP | Dissolved Reactive Phosphorus | mg PO4/L |
 | Cl | Chloride | mg Cl/L |
