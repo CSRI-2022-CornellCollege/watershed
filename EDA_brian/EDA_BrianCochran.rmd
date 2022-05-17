@@ -15,6 +15,7 @@ library(GGally)
 
 ``` {r read-data, warning=F}
 data <- read_csv("../Data/combined_data_clean.csv")
+rain <- read_csv("../Data/CR_airport_rainfall.csv")
 ```
 
 
@@ -41,7 +42,7 @@ pred <- data.frame(NO3_N=predict(fit, temp_data), Temp=temp_data$Temp)
 data %>%
   ggplot()+
   geom_point(aes(x=Temp, y=NO3_N))+
-  geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)
+  geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)+
 ```
 
 
@@ -54,6 +55,12 @@ print(data %>% count(Site) %>% arrange(n), n=100)
 
 ``` {r by-date}
 data %>%
-  ggplot(aes(x=Date, y=Cl, color=Watershed))+
+  filter(Date > "2020-05-05") %>%
+  ggplot(aes(x=Date, y=NO3_N, color=Watershed))+
+  geom_line()
+  
+rain %>%
+  filter(Date > "2020-05-05" & Date < "2021-08-04") %>%
+  ggplot(aes(x=Date, y=Estimate))+
   geom_line()
 ```
