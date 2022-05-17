@@ -100,3 +100,9 @@ This dataset contains 3987 observations and 15 variables. The watershed variable
 | NO3-N | Nitrate Nitrogen | mg NO3-N/L |
 | SO4/L | Sulfate | mg SO4/L |
 | E coli | Colony Forming Units of E. coli | CFU/100 mL |
+
+
+### CR_airport_rainfall.csv
+This dataset includes dates and rainfall estimates for every day from 2002 to 2021.
+
+
