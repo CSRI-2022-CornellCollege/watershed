@@ -42,7 +42,7 @@ pred <- data.frame(NO3_N=predict(fit, temp_data), Temp=temp_data$Temp)
 data %>%
   ggplot()+
   geom_point(aes(x=Temp, y=NO3_N))+
-  geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)+
+  geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)
 ```
 
 
