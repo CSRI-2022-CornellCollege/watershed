@@ -10,13 +10,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r data-load}
 watershed <- read.csv("../Data/combined_data_clean.csv")
 
-watershed[4:14] <- sapply(watershed[4:14], as.numeric)
 ```
+
+I read in the data, it has already been cleaned so I didn't need to do much.
 
 ```{r load-packages, message=FALSE}
 library(tidyverse)
 library(ggplot2)
 library(tidymodels)
+library(DataExplorer)
 ```
 
 ## R Markdown
@@ -27,20 +29,24 @@ watershed %>%
   arrange(desc(n))
 ```
 
-```{r graphing-Cl}
+A count of the number of observations for each of the sites in the dataset.
 
-ggplot(watershed, aes(x = Cl)) +
-  geom_histogram()
+``` {r many-hist}
+watershed %>% 
+  select(DO, Temp, pH, Cond, Turb, TSS, DRP, Cl, NO3_N, SO4, E_coli) %>% 
+  plot_histogram(nrow = 4, ncol = 4)
 ```
 
-``` {r temp-vs-ph}
+A histogram several different variables of interest, just to get an idea of what the distributions look like. Temperature, conductivity, dissolved oxygen, and pH all have fairly normal distributions. The rest of the variables (SO4, NO3_N, Cl, DRP, TSS, Turb, E_coli) are all right-skewed, some more strongly than others. It's interesting that variables that are related more to the contents of the water (TSS, Turb, NO3_N, E_coli, etc.) tend to be right-skewed while that variables that are related to the physical/chemical properties of the water (pH, temp, Cond) tend to be normally distributed. DO is weird because it relates to the content of the water (amount of oxygen), but is also related to physical changes in the water (temperature especially).
+
+``` {r temp-vs-ph, warning=FALSE}
 ggplot(watershed, aes(x = Temp, y = pH)) +
          geom_point()
 ```
 
-Graph of temp vs ph could be vaguely linear but show no clear correlation.
+Graph of temp vs pH could be vaguely linear but shows no clear correlation.
 
-``` {r temp-vs-no3}
+``` {r temp-vs-no3, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = Temp, y = NO3_N)) + 
   geom_point()+
   geom_smooth(method=lm, se=FALSE)
@@ -53,10 +59,10 @@ temp_vs_no3_fit <- linear_reg() %>%
 glance(temp_vs_no3_fit)
 ```
 
-Graph of temp vs. NO3 has a slightly negative, linear relationship (fans out in lower temps and narrows in higher temps - transform data?), indicating that as temperature increases, NO3 levels decrease.
+Graph of temp vs. NO3 has a slightly negative, linear relationship (fans out in lower temps and narrows in higher temps), indicating that as temperature increases, NO3 levels decrease. The data could possibly benefit from a transformation.
 
 
-``` {r log-temp-vs-no3}
+``` {r log-temp-vs-no3, message=FALSE, warning=FALSE}
 
 ggplot(watershed, aes(x = Temp, y = log(NO3_N))) + 
   geom_point()+
@@ -64,12 +70,13 @@ ggplot(watershed, aes(x = Temp, y = log(NO3_N))) +
 
 ```
 
-The graph of log(NO3_N) vs. temp looks a little beter than the untransformed version (there's less of a cone shape in this graph) but looks like it has a slight curve (concave). The relationship appears stronger and it's still negative.
+The graph of log(NO3_N) vs. temp looks a little better than the untransformed version (there's less of a cone shape in this graph) but looks like it has a slight curve (concave). The relationship appears stronger and it's still negative.
 
 
-``` {r temp-vs-DO}
+``` {r temp-vs-DO, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = Temp, y = DO)) +
-         geom_point()
+         geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 
 temp_vs_DO_fit <- linear_reg() %>% 
   set_engine("lm") %>% 
@@ -79,9 +86,9 @@ temp_vs_DO_fit <- linear_reg() %>%
 glance(temp_vs_DO_fit)
 ```
 
-Graph of temp vs. DO (dissolved oxygen?) shows a slightly negative, linear relationship. This indicates that as temperature increases, the levels of dissolved oxygen decrease. This is consistent with the packet and with how solubility works (solubility of a gas in liquid decreases as temperature increases). The linear model has an r-squared adj. of ~0.28, indicating that about 28% of the change in DO levels is explained by the change in temperature.
+Graph of temp vs. DO (dissolved oxygen) shows a slightly negative, linear relationship. This indicates that as temperature increases, the levels of dissolved oxygen decrease. This is consistent with the packet and with how solubility works (solubility of a gas in liquid decreases as temperature increases). The linear model has an r-squared adj. of ~0.28, indicating that about 28% of the change in DO levels is explained by the change in temperature.
 
-``` {r NO3-vs-ecoli}
+``` {r NO3-vs-ecoli, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = NO3_N, y = E_coli)) +
          geom_point()
 
@@ -95,15 +102,8 @@ glance(no3_vs_ecoli_fit)
 
 Graph of NO3_N vs E_coli has no clear pattern and a very low r-squared, indicating that NO3 levels aren't correlated with E.coli levels. I had expected that E.coli levels would increases as NO3 levels increase because nitrates are a source of nurients for algae/bacteria, and because the papers and packet describe how increasing nitrate levels cause algal blooms/eutrophication. It's possible the data needs to be transformed.
 
-``` {r zoom-NO3-vs-ecoli}
-ggplot(watershed, aes(x = NO3_N, y = E_coli)) +
-         geom_point(alpha = 0.5)+
-  coord_cartesian(ylim=c(0,2500))
-```
 
-I tried zooming in on the graph (I may have been overenthusiastic) to see if there was a pattern I was missing, but the graph is still inconclusive (no clear pattern). There's probably some kind of transformation I could do but I'm not sure what - there may just be not much of a relationship or some other factor affecting the graph. 
-
-``` {r log-NO3-vs-ecoli}
+``` {r log-NO3-vs-ecoli, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = NO3_N, y = log(E_coli))) +
          geom_point(alpha = 0.5) +
    geom_smooth(method=lm, se=FALSE)
@@ -111,26 +111,30 @@ ggplot(watershed, aes(x = NO3_N, y = log(E_coli))) +
 
 I tried transforming the data and it does look better, but still does not show a strong relationship (also I probably broke some kind of stats rule). The line of best fit shows a negative relationship, which is the opposite of what I would expect.
 
-``` {r cond-vs-cl}
+``` {r cond-vs-cl, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = Cl, y = Cond)) +
-         geom_point()
+         geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 ```
 
-``` {r cond-vs-so4}
+``` {r cond-vs-so4, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = SO4, y = Cond)) +
-         geom_point()
+         geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 ```
 
-The two scatterplots above are related. The packet mentions that "the highest value of conductivity are matched by the top average values of chloride and sulfate", which makes sense to me since the presence of ions (like Cl and SO4) in water is what makes it conductive. I expected to see a positive relationship between Cl and Cond and SO4 and Cond. Both graphs look vaguely positive (the graph of Cond vs. SO4 looks better - more linear) but neither show an especially clear relationship. 
+The two scatterplots above are related. The packet mentions that "the highest value of conductivity are matched by the top average values of chloride and sulfate", which makes sense to me since the presence of ions (like Cl and SO4) in water is what makes it conductive. I expected to see a positive relationship between Cl and Cond and SO4 and Cond. Both graphs show a positive relationship (the graph of Cond vs. SO4 looks better - more linear) but neither show a strong relationship. 
 
-``` {r cond-vs-log-cl}
+``` {r cond-vs-log-cl, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = log(Cl), y = Cond)) +
-         geom_point()
+         geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 ```
 
-``` {r cond-vs-log-so4}
+``` {r cond-vs-log-so4, message=FALSE, warning=FALSE}
 ggplot(watershed, aes(x = log(SO4), y = Cond)) +
-         geom_point()
+         geom_point()+
+  geom_smooth(method=lm, se=FALSE)
 ```
 
 I transformed the data for both graphs using log. They look slightly better but there's no big difference. 
