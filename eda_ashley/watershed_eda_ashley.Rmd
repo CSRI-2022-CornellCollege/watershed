@@ -1,0 +1,55 @@
+---
+title: "watershed EDA 2_ashley"
+author: "ashley mink"
+date: "5/17/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data-load}
+watershed <- read.csv("../Data/combined_data_clean.csv")
+
+watershed[4:14] <- sapply(watershed[4:14], as.numeric)
+names(watershed)[c(12,14)] <- c("NO3_N", "E_coli")
+```
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(tidymodels)
+```
+
+```{r site-count}
+watershed %>%
+  count(Site) %>%
+  arrange(desc(n))
+```
+
+```{r graphing-SO4}
+ggplot(watershed, aes(x = SO4)) + geom_histogram
+```
+
+```{r temp-vs-ph}
+ggplot(watershed, aes(x = pH , y = Temp)) + geom_point()
+```
+
+```{r data-explorer}
+library(DataExplorer)
+plot_missing(watershed[, -1])
+create_report(watershed[, -1])
+```
+
+```{r Cl-SO4}
+temp_data <- filter(data, !(is.na(Cl) | (is.na(SO4))))
+fit <- lm(Cl~SO4, data=temp_data)
+pred <- data.frame(Cl=predict(fit, temp_data), SO4=temp_data$SO4)
+data %>%
+  ggplot() +
+  geom_point(aes(x=Cl, y=SO4)) +
+  geom_line(data=pred, aes(x=Cl, y=SO4) color="red", size=1)
+```
+
+
