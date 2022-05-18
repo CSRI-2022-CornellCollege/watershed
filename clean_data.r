@@ -25,6 +25,20 @@ data <- data[-3703,] %>%
   mutate(Date = as.Date(Date, origin = "1899-12-30")) %>%
   relocate(Watershed, .before=Site)
 
+# Convert time column to string
+data$Time[c(510, 2760)] <- NA
+x <- data$Time*24 
+minutes <- sapply((x %% 1)*60, round)
+hours <- sapply(x-(minutes/60), round)
+for (i in 1:length(minutes)){
+  if (!(is.na(minutes[i])) & (as.numeric(minutes[i]) < 10)){
+    minutes[i] = paste0("0", minutes[i])
+  }
+}
+time <- paste0(hours, ":", minutes)
+data$Time <- time
+data$Time[which(is.na(minutes))] <- NA
+
 # Write clean data to new CSV file
 write.csv(data, "Data/combined_data_clean.csv", row.names=F)
 
