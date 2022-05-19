@@ -14,16 +14,19 @@ library(GGally)
 
 
 ``` {r read-data, warning=F}
-data <- read_csv("../Data/combined_data_clean.csv")
-rain <- read_csv("../Data/CR_airport_rainfall.csv")
+data <- read_csv("../Data/combined_data_clean2.csv")
 ```
 
-
+<h3>GGpairs Plot</h3>
 ``` {r all-plots, warning=F}
-ggpairs(data[3:14])
+ggpairs(data[,-c(1,2,4)])
 ```
 
-Graph of SO4 and Cl.
+The ggpairs plot shows the scatter plots between each numerical variable. Some of the relationships which stand out are the DO and NO3_N, Temp and NO3_N, Cl and SO4, and DO and Temp. These relationships appear to have a relationship according to the scatter plots but are mostly cone shaped, so perhaps a transformation is needed.
+
+
+
+<h3>Graph of SO4 and Cl.</h3>
 ``` {r SO4-Cl, warning=F}
 temp_data <- filter(data, !(is.na(SO4) | is.na(Cl)))
 fit <- lm(Cl~SO4, data=temp_data)
@@ -34,7 +37,10 @@ data %>%
   geom_line(data=pred, aes(x=SO4, y=Cl), color="red", size=1)
 ```
 
-Graph of Temp and NO3_N. It appears to somewhat follow the fit seen on the graph. Clearly temperature has some predictive power when it comes to predicting NO3_N levels.
+The scatter plot appeared to have a somewhat linear relationship. After plotting a linear fit on top of the data it is clear that there is some curvature here.
+
+
+<h3>Graph of Temp and NO3_N.</h3>
 ``` {r Temp-NO3_N, warning=F}
 temp_data <- filter(data, !(is.na(Temp) | is.na(NO3_N)))
 fit <- lm(NO3_N~poly(Temp, 3), data=temp_data)
@@ -45,22 +51,40 @@ data %>%
   geom_line(data=pred, aes(x=Temp, y=NO3_N), color="red", size=1)
 ```
 
+It appears to somewhat follow the fit seen on the graph, at least up until around a Temp value of 15. Clearly temperature has some predictive power when it comes to predicting NO3_N levels, but a transformation is needed to see a stronger relationship. The plot of DO and NO3_N also displays this conical behavior.
 
 
-There are many sites with only one observation.
+<h3>Graph of Temp and NO3_N.</h3>
+``` {r Temp-DO}
+temp_data <- filter(data, !(is.na(Temp) | is.na(DO)))
+fit <- lm(DO~poly(Temp, 3), data=temp_data)
+pred <- data.frame(DO=predict(fit, temp_data), Temp=temp_data$Temp)
+data %>%
+  ggplot()+
+  geom_point(aes(x=Temp, y=DO))+
+  geom_line(data=pred, aes(x=Temp, y=DO), color="red")
+```
+
+This relationship appears to be pretty linear. Introducing a polynomial regression model only gives a slight curve.
+
+
+<h3>Site Counts</h3>
+There are many sites with only one observation. This could pose a problem if we wanted to compare, for example, upstream versus downstream sites in a given watershed because with just one sample a lot of sites would not be able to be considered.
 ``` {r by-site}
 print(data %>% count(Site) %>% arrange(n), n=100)
 ```
 
-
-``` {r by-date}
-data %>%
-  filter(Date > "2020-05-05") %>%
-  ggplot(aes(x=Date, y=NO3_N, color=Watershed))+
-  geom_line()
-  
-rain %>%
-  filter(Date > "2020-05-05" & Date < "2021-08-04") %>%
-  ggplot(aes(x=Date, y=Estimate))+
+<h3>Plot of NO3_N concentration for summer of 2021.</h3>
+``` {r year-change}
+upper_date <- "2021-08-07"
+lower_date <- "2021-05-01"
+line_data <- data %>%
+  filter(Date > lower_date & Date < upper_date) %>%
+  group_by(Watershed, Date) %>%
+  summarize(avg=mean(NO3_N))
+    
+ggplot(line_data, aes(x=Date, y=avg, color=Watershed))+
   geom_line()
 ```
+
+This plot shows that as the summer progresses, the average NO3_N concentration typically decreases, although there are many spikes and dips in the graph. Because of these frequent spikes we should not simplify the behavior of the graph by just saying it decreases as the summer progresses. These spikes are important in context and most likely correspond to some event not represented in this data set.
