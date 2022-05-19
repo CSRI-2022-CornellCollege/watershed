@@ -4,152 +4,174 @@ library(tidyverse)
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
 
-# Define UI ----
+
+# Pages
+
+# Distributions of variables in a given watershed
+distPage <- tabPanel("Distributions",
+                     
+                     sidebarLayout(fluid=T,
+                                   
+                                   sidebarPanel(
+                                     selectInput("dist_watershed",
+                                                 label = "Select Watershed",
+                                                 choices = c("Indian Creek", "Bear", 
+                                                             "Blue", "Morgan", "Mud", 
+                                                             "North Bear", "Otter", 
+                                                             "Lime"),
+                                                 selected = "Lime"
+                                                 
+                                     ) #selectInput
+                                     
+                                   ), #sidebarPanel
+                                   
+                                   mainPanel(
+                                     plotOutput("dist")
+                                   ) #mainPanel
+                                   
+                     ) #sidebarLayout
+                     
+              ) #tabPanel
+
+# Scatterplot of a variable in a given watershed and date range
+multyearchangePage <- tabPanel("Multiple Year Change",
+                               
+                               sidebarLayout(fluid=T,
+                                             
+                                             sidebarPanel(
+                                               pickerInput("multyear_watershed",
+                                                           label = "Select Watershed",
+                                                           choices = c("Indian Creek", "Bear", 
+                                                                       "Blue", "Morgan", "Mud", 
+                                                                       "North Bear", "Otter", 
+                                                                       "Lime"),
+                                                           selected = c("Indian Creek", "Bear", 
+                                                                        "Blue", "Morgan", "Mud", 
+                                                                        "North Bear", "Otter", 
+                                                                        "Lime")
+                                                           
+                                               ), #pickerInput
+                                               
+                                               selectInput("multyear_var",
+                                                           label = "Select Variable",
+                                                           choices = c("DO", "Temp", "pH", "Cond",
+                                                                       "Turb", "TSS", "DRP", "Cl",
+                                                                       "NO3_N", "SO4", "E_coli"),
+                                                           selected = "NO3_N"
+                                                           
+                                               ), #selectInput
+                                               
+                                               sliderInput("multyear_range",
+                                                           label="Date Range",
+                                                           min=min(watershed_data$Date),
+                                                           max=max(watershed_data$Date),
+                                                           value=c(min(watershed_data$Date),
+                                                                   max(watershed_data$Date))
+                                               ) #sliderInput
+                                               
+                                             ), #sidebarPanel
+                                             
+                                             mainPanel(
+                                               plotOutput("multyear_graph")
+                                             ) #mainPanel
+                                             
+                               ) #sidebarLayout 
+                               
+                    ) #tabPanel
+
+# Line graph of a variable over a given year in one or more watersheds
+oneyearchangePage <- tabPanel("One Year Change",
+                              
+                              sidebarLayout(fluid=T,
+                                            
+                                            sidebarPanel(
+                                              
+                                              pickerInput("yearchange_watershed",
+                                                          label="Select Watershed(s)",
+                                                          choices = c("Indian Creek", "Bear", 
+                                                                      "Blue", "Morgan", "Mud", 
+                                                                      "North Bear", "Otter", 
+                                                                      "Lime"),
+                                                          selected=c("Indian Creek", "Bear", 
+                                                                     "Blue", "Morgan", "Mud", 
+                                                                     "North Bear", "Otter", 
+                                                                     "Lime"),
+                                                          multiple=T,
+                                                          options = list(`actions-box` = TRUE)
+                                              ), #checkboxGroupInput
+                                              
+                                              selectInput("yearchange_year",
+                                                          label="Select Year",
+                                                          choices=c("2002", "2003", "2004", "2005",
+                                                                    "2006", "2007", "2008", "2009",
+                                                                    "2010", "2011", "2012", "2013",
+                                                                    "2014", "2015", "2016", "2017",
+                                                                    "2018", "2019", "2020", "2021"),
+                                                          selected="2021"
+                                              ), #selectInput
+                                              selectInput("yearchange_var",
+                                                          label = "Select Variable",
+                                                          choices = c("DO", "Temp", "pH", "Cond",
+                                                                      "Turb", "TSS", "DRP", "Cl",
+                                                                      "NO3_N", "SO4", "E_coli"),
+                                                          selected = "NO3_N"
+                                                          
+                                              ), #selectInput
+                                              
+                                            ), #sidebarPanel
+                                            
+                                            mainPanel(
+                                              plotOutput("yearchange_graph")
+                                            ) #mainPanel
+                                            
+                              ) #sidebarLayout
+                              
+                      ) #tabPanel
+
+# Table of all data
+datatablePage <- tabPanel("Table",
+                      
+                      sidebarLayout(fluid=T,
+                                    
+                                    sidebarPanel(
+                                      
+                                      
+                                      
+                                    ), #sidebarPanel
+                                    
+                                    mainPanel(
+                                      
+                                      dataTableOutput("alldata")
+                                      
+                                    ) #mainPanel
+                                    
+                      ) #sidebarLayout
+                      
+) #tabPanel
+
+
+
+
+# Structure
+
 ui <- fluidPage(
   
   navbarPage("Watershed Project", position="static-top",
              
              navbarMenu("Visualizations",
                         
-                        tabPanel("Distributions",
-                                 
-                                 sidebarLayout(fluid=T,
-                                               
-                                               sidebarPanel(
-                                                 selectInput("dist_watershed",
-                                                             label = "Select Watershed",
-                                                             choices = c("Indian Creek", "Bear", 
-                                                                         "Blue", "Morgan", "Mud", 
-                                                                         "North Bear", "Otter", 
-                                                                         "Lime"),
-                                                             selected = "Lime"
-                                                             
-                                                 ) #selectInput
-                                                 
-                                               ), #sidebarPanel
-                                               
-                                               mainPanel(
-                                                 plotOutput("dist")
-                                               ) #mainPanel
-                                               
-                                 ) #sidebarLayout
-                                 
-                                 ), #tabPanel
+                        distPage,
                         
-                        tabPanel("Multiple Year Change",
-                                 
-                                 sidebarLayout(fluid=T,
-                                               
-                                               sidebarPanel(
-                                                 selectInput("multyear_watershed",
-                                                             label = "Select Watershed",
-                                                             choices = c("Indian Creek", "Bear", 
-                                                                         "Blue", "Morgan", "Mud", 
-                                                                         "North Bear", "Otter", 
-                                                                         "Lime"),
-                                                             selected = "Lime"
-                                                             
-                                                 ), #selectInput
-                                                 
-                                                 selectInput("multyear_var",
-                                                             label = "Select Chemical",
-                                                             choices = c("DO", "Temp", "pH", "Cond",
-                                                                         "Turb", "TSS", "DRP", "Cl",
-                                                                         "NO3_N", "SO4", "E_coli"),
-                                                             selected = "NO3_N"
-                                                             
-                                                 ), #selectInput
-                                                 
-                                                 sliderInput("multyear_range",
-                                                             label="Date Range",
-                                                             min=min(watershed_data$Date),
-                                                             max=max(watershed_data$Date),
-                                                             value=c(min(watershed_data$Date),
-                                                                     max(watershed_data$Date))
-                                                 ) #sliderInput
-                                                 
-                                               ), #sidebarPanel
-                                               
-                                               mainPanel(
-                                                 plotOutput("multyear_graph")
-                                               ) #mainPanel
-                                               
-                                 ) #sidebarLayout 
-                                 
-                        ), #tabPanel
+                        multyearchangePage,
                         
-                        tabPanel("One Year Change",
-                                 
-                                 sidebarLayout(fluid=T,
-                                               
-                                               sidebarPanel(
-                                                 
-                                                 pickerInput("yearchange_watershed",
-                                                                    label="Select Watershed(s)",
-                                                                    choices = c("Indian Creek", "Bear", 
-                                                                                "Blue", "Morgan", "Mud", 
-                                                                                "North Bear", "Otter", 
-                                                                                "Lime"),
-                                                                    selected=c("Indian Creek", "Bear", 
-                                                                               "Blue", "Morgan", "Mud", 
-                                                                               "North Bear", "Otter", 
-                                                                               "Lime"),
-                                                                    multiple=T,
-                                                                    options = list(`actions-box` = TRUE)
-                                                                    ), #checkboxGroupInput
-                                                 
-                                                 selectInput("yearchange_year",
-                                                              label="Select Year",
-                                                              choices=c("2002", "2003", "2004", "2005",
-                                                                        "2006", "2007", "2008", "2009",
-                                                                        "2010", "2011", "2012", "2013",
-                                                                        "2014", "2015", "2016", "2017",
-                                                                        "2018", "2019", "2020", "2021"),
-                                                             selected="2021"
-                                                              ), #selectInput
-                                                 selectInput("yearchange_var",
-                                                             label = "Select Chemical",
-                                                             choices = c("DO", "Temp", "pH", "Cond",
-                                                                         "Turb", "TSS", "DRP", "Cl",
-                                                                         "NO3_N", "SO4", "E_coli"),
-                                                             selected = "NO3_N"
-                                                             
-                                                             ), #selectInput
-                                                 
-                                               ), #sidebarPanel
-                                               
-                                               mainPanel(
-                                                 plotOutput("yearchange_graph")
-                                               ) #mainPanel
-                                               
-                                 ) #sidebarLayout
-
-                                 ) #tabPanel
+                        oneyearchangePage
                         
                         
                         ), #navbarMenu
              
              navbarMenu("Data",
                         
-                        tabPanel("Table",
-                                 
-                                 sidebarLayout(fluid=T,
-                                               
-                                               sidebarPanel(
-                                                 
-                                                 
-                                                 
-                                               ), #sidebarPanel
-                                               
-                                               mainPanel(
-                                                 
-                                                 dataTableOutput("alldata")
-                                                 
-                                               ) #mainPanel
-                                               
-                                               ) #sidebarLayout
-                                 
-                                 ) #tabPanel
+                        datatablePage
                         
                         ) #navbarMenu
              
@@ -158,8 +180,9 @@ ui <- fluidPage(
 ) # fluidPage
 
 
-# Define server logic ----
-server <- function(input, output) {
+# Server
+
+server <- function(input, output, session) {
   
   output$multyear_graph <- renderPlot({
     data <- switch(input$multyear_watershed,
@@ -240,8 +263,13 @@ server <- function(input, output) {
     
   }) #renderPlot
   
+  # ensure app closes properly
+  session$onSessionEnded(function() {
+    stopApp()
+  })
+  
 } #server
 
 
-# Run the app ----
+# Run app
 shinyApp(ui=ui, server=server)
