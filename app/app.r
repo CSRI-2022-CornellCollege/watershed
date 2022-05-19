@@ -90,7 +90,10 @@ ui <- fluidPage(
                                                                                 "Blue", "Morgan", "Mud", 
                                                                                 "North Bear", "Otter", 
                                                                                 "Lime"),
-                                                                    selected="Lime",
+                                                                    selected=c("Indian Creek", "Bear", 
+                                                                               "Blue", "Morgan", "Mud", 
+                                                                               "North Bear", "Otter", 
+                                                                               "Lime"),
                                                                     multiple=T,
                                                                     options = list(`actions-box` = TRUE)
                                                                     ), #checkboxGroupInput
@@ -103,7 +106,15 @@ ui <- fluidPage(
                                                                         "2014", "2015", "2016", "2017",
                                                                         "2018", "2019", "2020", "2021"),
                                                              selected="2021"
-                                                              ) #radioButtons
+                                                              ), #selectInput
+                                                 selectInput("yearchange_var",
+                                                             label = "Select Chemical",
+                                                             choices = c("DO", "Temp", "pH", "Cond",
+                                                                         "Turb", "TSS", "DRP", "Cl",
+                                                                         "NO3_N", "SO4", "E_coli"),
+                                                             selected = "NO3_N"
+                                                             
+                                                             ), #selectInput
                                                  
                                                ), #sidebarPanel
                                                
@@ -218,10 +229,14 @@ server <- function(input, output) {
       filter(Date > lower_date & Date < upper_date) %>%
       filter(Watershed %in% to_include) %>%
       group_by(Watershed, Date) %>%
-      summarize(avg=mean(NO3_N))
+      summarize(avg=mean(eval(as.name(input$yearchange_var))))
     
     ggplot(line_data, aes(x=Date, y=avg, color=Watershed))+
-      geom_line()
+      geom_line()+
+      xlab("Date")+
+      ylab(input$yearchange_var)+
+      ggtitle(paste0(input$yearchange_var, " Summer ", input$yearchange_year))+
+      theme_minimal()
     
   }) #renderPlot
   
