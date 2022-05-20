@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyWidgets)
 library(tidyverse)
+library(ggpubr)
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
 
@@ -13,6 +14,10 @@ distPage <- tabPanel("Distributions",
                      sidebarLayout(fluid=T,
                                    
                                    sidebarPanel(
+                                     
+                                     h3("Distributions"),
+                                     br(),
+                                     
                                      selectInput("dist_watershed",
                                                  label = "Select Watershed",
                                                  choices = c("Indian Creek", "Bear", 
@@ -39,6 +44,10 @@ multyearchangePage <- tabPanel("Multiple Year Change",
                                sidebarLayout(fluid=T,
                                              
                                              sidebarPanel(
+                                               
+                                               h3("Multiple Year Change"),
+                                               br(),
+                                               
                                                pickerInput("multyear_watershed",
                                                            label = "Select Watershed",
                                                            choices = c("Indian Creek", "Bear", 
@@ -85,6 +94,9 @@ oneyearchangePage <- tabPanel("One Year Change",
                               sidebarLayout(fluid=T,
                                             
                                             sidebarPanel(
+                                              
+                                              h3("One Year Change"),
+                                              br(),
                                               
                                               pickerInput("yearchange_watershed",
                                                           label="Select Watershed(s)",
@@ -134,6 +146,9 @@ compareyearsPage <- tabPanel("Compare Years",
                                             
                                             sidebarPanel(
                                               
+                                              h3("Compare Years"),
+                                              br(),
+                                              
                                               selectInput("compareyears_watershed",
                                                           label="Select Watershed",
                                                           choices = c("Indian Creek", "Bear", 
@@ -174,18 +189,18 @@ compareyearsPage <- tabPanel("Compare Years",
 ) #tabPanel
 
 
-sitePage <- tabPanel("Sites",
+sitePage <- tabPanel("Compare Sites",
                               
                               sidebarLayout(fluid=T,
                                             
                                             sidebarPanel(
                                               
+                                              h3("Compare Sites"),
+                                              br(),
+                                              
                                               selectInput("site_watershed",
                                                           label="Select Watershed(s)",
-                                                          choices = c("Indian Creek", "Bear", 
-                                                                      "Blue", "Morgan", "Mud", 
-                                                                      "North Bear", "Otter", 
-                                                                      "Lime"),
+                                                          choices = c("Indian Creek", "Lime"),
                                                           selected="Indian Creek"
                                               ), #selectInput
                                               
@@ -200,7 +215,7 @@ sitePage <- tabPanel("Sites",
                                               ), #selectInput
                                               
                                               pickerInput("site_site",
-                                                          label="Select Site",
+                                                          label="Select Site(s)",
                                                           choices=c("ICLM", "ICS", "ICThom", "Dry", "ICN"),
                                                           selected=c("ICLM", "ICS", "ICThom", "Dry", "ICN"),
                                                           multiple=T,
@@ -227,6 +242,55 @@ sitePage <- tabPanel("Sites",
 ) #tabPanel
 
 
+precipPage <- tabPanel("Precipitation Graph",
+                     
+                     sidebarLayout(fluid=T,
+                                   
+                                   sidebarPanel(
+                                     
+                                     h3("Precipitation Graphs"),
+                                     br(),
+                                     
+                                     selectInput("precip_watershed",
+                                                 label = "Select Watershed",
+                                                 choices = c("Indian Creek", "Bear", 
+                                                             "Blue", "Morgan", "Mud", 
+                                                             "North Bear", "Otter", 
+                                                             "Lime"),
+                                                 selected = "Lime"
+                                                 
+                                     ), #selectInput
+                                     
+                                     selectInput("precip_year",
+                                                 label="Select Year",
+                                                 choices=c("2002", "2003", "2004", "2005",
+                                                           "2006", "2007", "2008", "2009",
+                                                           "2010", "2011", "2012", "2013",
+                                                           "2014", "2015", "2016", "2017",
+                                                           "2018", "2019", "2020", "2021"),
+                                                 selected="2011"
+                                     ), #selectInput
+                                     
+                                     selectInput("precip_var",
+                                                 label = "Select Variable",
+                                                 choices = c("DO", "Temp", "pH", "Cond",
+                                                             "Turb", "TSS", "DRP", "Cl",
+                                                             "NO3_N", "SO4", "E_coli"),
+                                                 selected = "NO3_N"
+                                                 
+                                     ) #selectInput
+
+                                   ), #sidebarPanel
+                                   
+                                   mainPanel(
+                                     plotOutput("precip_graph")
+                                   ) #mainPanel
+                                   
+                     ) #sidebarLayout
+                     
+) #tabPanel
+
+
 
 
 
@@ -236,6 +300,9 @@ datatablePage <- tabPanel("Table",
                       sidebarLayout(fluid=T,
                                     
                                     sidebarPanel(
+                                      
+                                      h3("Filters"),
+                                      br(),
                                       
                                       pickerInput("table_watershed",
                                                   label="Select Watershed(s)",
@@ -249,13 +316,29 @@ datatablePage <- tabPanel("Table",
                                                              "Lime"),
                                                   multiple=T,
                                                   options = list(`actions-box` = TRUE)
-                                      ) #pickerInput
+                                                  ), #pickerInput
+                                      
+                                      pickerInput("table_site",
+                                                  label = "Select Site(s)",
+                                                  choices=unique(watershed_data$Site),
+                                                  selected=unique(watershed_data$Site),
+                                                  multiple=T,
+                                                  options=list(`actions-box` = TRUE)
+                                                  ), #pickerInput
+                                      
+                                      sliderInput("table_date",
+                                                  label="Date Range",
+                                                  min=min(watershed_data$Date),
+                                                  max=max(watershed_data$Date),
+                                                  value=c(min(watershed_data$Date),
+                                                          max(watershed_data$Date))
+                                      ) #sliderInput
                                       
                                     ), #sidebarPanel
                                     
                                     mainPanel(
                                       
-                                      dataTableOutput("alldata")
+                                      dataTableOutput("data_table")
                                       
                                     ) #mainPanel
                                     
@@ -282,7 +365,9 @@ ui <- fluidPage(
                         
                         compareyearsPage,
                         
-                        sitePage
+                        sitePage,
+                        
+                        precipPage
                         
                         
                         ), #navbarMenu
@@ -445,22 +530,54 @@ server <- function(input, output, session) {
       
       ggplot(aes(x=Date, y=avg, color=Site))+
       geom_line()+
-      geom_point()
+      geom_point()+
+      xlab("Date")+
+      ylab(input$site_var)+
+      ggtitle(paste0("Comparison of ", input$site_var, " by site"))+
+      theme_minimal()
     
   }) #renderPlot
   
   
+  output$precip_graph <- renderPlot({
+    
+    upper_date <- paste0(input$precip_year, "-08-07")
+    lower_date <- paste0(input$precip_year, "-05-01")
+    
+    plot1 <- watershed_data %>%
+      filter(Date > lower_date & Date < upper_date) %>%
+      filter(Watershed==input$precip_watershed) %>%
+      group_by(Date) %>%
+      summarize(avg=mean(eval(as.name(input$precip_var)))) %>%
+      ggplot(aes(x=Date, y=avg))+
+      geom_line()+
+      geom_point()+
+      ylab(input$precip_var)+
+      theme_minimal()
+    
+    plot2 <- rainfall_data %>%
+      filter(Date > lower_date & Date < upper_date) %>%
+      ggplot(aes(x=Date, y=Estimate))+
+      geom_line()+
+      geom_point()+
+      ylab("Rainfall Estimate")+
+      theme_minimal()
+    
+    ggarrange(plot1, plot2, ncol=1, nrow=2)
+    
+  }) #renderPlot
+  
   
   new_data <- reactive({
     watershed_data %>%
-      filter(Watershed==input$table_watershed)
-  }) #reactive
-  
-  observeEvent(new_data, {
+      filter(Watershed %in% input$table_watershed) %>%
+      filter(Site %in% input$table_site) %>%
+      filter(Date > input$table_date[1] & Date < input$table_date[2])
     
-  }) #observeEvent
-  
-  output$alldata <- renderDataTable(new_data())
+  }) #reactive
+
+
+  output$data_table <- renderDataTable(new_data())
   
   
   
