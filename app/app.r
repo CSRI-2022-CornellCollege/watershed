@@ -261,14 +261,11 @@ precipPage <- tabPanel("Precipitation Graph",
                                                  
                                      ), #selectInput
                                      
-                                     selectInput("precip_year",
+                                     sliderInput("precip_year",
                                                  label="Select Year",
-                                                 choices=c("2002", "2003", "2004", "2005",
-                                                           "2006", "2007", "2008", "2009",
-                                                           "2010", "2011", "2012", "2013",
-                                                           "2014", "2015", "2016", "2017",
-                                                           "2018", "2019", "2020", "2021"),
-                                                 selected="2011"
+                                                 min=2002,
+                                                 max=2021,
+                                                 value=c(2002, 2021)
                                      ), #selectInput
                                      
                                      selectInput("precip_var",
@@ -541,23 +538,26 @@ server <- function(input, output, session) {
   
   output$precip_graph <- renderPlot({
     
-    upper_date <- paste0(input$precip_year, "-08-07")
-    lower_date <- paste0(input$precip_year, "-05-01")
-    
     plot1 <- watershed_data %>%
-      filter(Date > lower_date & Date < upper_date) %>%
+      mutate(Year = as.numeric(substr(Date, 1, 4))) %>%
+      filter(Year > input$precip_year[1] & Year < input$precip_year[2]) %>%
+      mutate(Year = as.Date(paste0(substr(Date, 1, 4), "-01-01"))) %>%
       filter(Watershed==input$precip_watershed) %>%
-      group_by(Date) %>%
+      group_by(Year) %>%
       summarize(avg=mean(eval(as.name(input$precip_var)))) %>%
-      ggplot(aes(x=Date, y=avg))+
+      ggplot(aes(x=Year, y=avg))+
       geom_line()+
       geom_point()+
       ylab(input$precip_var)+
       theme_minimal()
     
     plot2 <- rainfall_data %>%
-      filter(Date > lower_date & Date < upper_date) %>%
-      ggplot(aes(x=Date, y=Estimate))+
+      mutate(Year = as.numeric(substr(Date, 1, 4))) %>%
+      filter(Year > input$precip_year[1] & Year < input$precip_year[2]) %>%
+      mutate(Year = as.Date(paste0(substr(Date, 1, 4), "-01-01"))) %>%
+      group_by(Year) %>%
+      summarize(avg=mean(Estimate)) %>%
+      ggplot(aes(x=Year, y=avg))+
       geom_line()+
       geom_point()+
       ylab("Rainfall Estimate")+
