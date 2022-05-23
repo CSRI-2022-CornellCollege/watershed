@@ -20,12 +20,14 @@ data <- data[-3703,] %>%
   mutate(Watershed = if_else(Watershed %in% NBear, "North Bear", Watershed)) %>%
   mutate(Site = if_else(Site %in% NBear, "North Bear", Site)) %>%
   mutate(Watershed = if_else(Watershed %in% LC, "Lime", Watershed)) %>%
-  mutate(Watershed = if_else(Watershed %in% IC, "Indian Creek", Watershed))%>%
+  mutate(Watershed = if_else(Watershed %in% IC, "Indian", Watershed))%>%
   mutate(Watershed = if_else(Watershed=="Otter 2", "Otter", Watershed)) %>%
+  mutate(Watershed = paste0(Watershed, " Creek")) %>%
   filter(!(Site %in% no_include)) %>%
   filter(!(Site %in% MR)) %>%
   mutate(Date = as.Date(Date, origin = "1899-12-30")) %>%
   relocate(Watershed, .before=Site)
+
 
 # Convert time column to string
 data$Time[c(510, 2760)] <- NA
