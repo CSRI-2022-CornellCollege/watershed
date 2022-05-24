@@ -2,11 +2,38 @@ library(shiny)
 library(shinyWidgets)
 library(tidyverse)
 library(ggpubr)
+library(raster)
+library(leaflet)
+library(broom)
+
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
+watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
+sites <- shapefile("../Data/watershed_geo/sites.shp")
 
 
 # Pages
+
+# Interactive Map
+mapPage <- tabPanel("Map",
+                     
+                     sidebarLayout(fluid=T,
+                                   
+                                   sidebarPanel(
+                                     
+                                     leafletOutput("map")
+                                     
+                                   ), #sidebarPanel
+                                   
+                                   mainPanel(
+                                     
+                                     
+                                     
+                                   ) #mainPanel
+                                   
+                     ) #sidebarLayout
+                     
+) #tabPanel
 
 # Distributions of variables in a given watershed
 distPage <- tabPanel("Distributions",
@@ -20,11 +47,11 @@ distPage <- tabPanel("Distributions",
                                      
                                      selectInput("dist_watershed",
                                                  label = "Select Watershed",
-                                                 choices = c("Indian Creek", "Bear", 
-                                                             "Blue", "Morgan", "Mud", 
-                                                             "North Bear", "Otter", 
-                                                             "Lime"),
-                                                 selected = "Lime"
+                                                 choices = c("Indian Creek", "Bear Creek", 
+                                                             "Blue Creek", "Morgan Creek  Creek", "Mud Creek", 
+                                                             "North Bear Creek", "Otter Creek", 
+                                                             "Lime Creek"),
+                                                 selected = "Lime Creek"
                                                  
                                      ) #selectInput
                                      
@@ -50,14 +77,14 @@ multyearchangePage <- tabPanel("Multiple Year Change",
                                                
                                                pickerInput("multyear_watershed",
                                                            label = "Select Watershed",
-                                                           choices = c("Indian Creek", "Bear", 
-                                                                       "Blue", "Morgan", "Mud", 
-                                                                       "North Bear", "Otter", 
-                                                                       "Lime"),
-                                                           selected = c("Indian Creek", "Bear", 
-                                                                        "Blue", "Morgan", "Mud", 
-                                                                        "North Bear", "Otter", 
-                                                                        "Lime")
+                                                           choices = c("Indian Creek", "Bear Creek", 
+                                                                       "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                                       "North Bear Creek", "Otter Creek", 
+                                                                       "Lime Creek"),
+                                                           selected = c("Indian Creek", "Bear Creek", 
+                                                                        "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                                        "North Bear Creek", "Otter Creek", 
+                                                                        "Lime Creek")
                                                            
                                                ), #pickerInput
                                                
@@ -100,14 +127,14 @@ oneyearchangePage <- tabPanel("One Year Change",
                                               
                                               pickerInput("yearchange_watershed",
                                                           label="Select Watershed(s)",
-                                                          choices = c("Indian Creek", "Bear", 
-                                                                      "Blue", "Morgan", "Mud", 
-                                                                      "North Bear", "Otter", 
-                                                                      "Lime"),
-                                                          selected=c("Indian Creek", "Bear", 
-                                                                     "Blue", "Morgan", "Mud", 
-                                                                     "North Bear", "Otter", 
-                                                                     "Lime"),
+                                                          choices = c("Indian Creek", "Bear Creek", 
+                                                                      "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                                      "North Bear Creek", "Otter Creek", 
+                                                                      "Lime Creek"),
+                                                          selected=c("Indian Creek", "Bear Creek", 
+                                                                     "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                                     "North Bear Creek", "Otter Creek", 
+                                                                     "Lime Creek"),
                                                           multiple=T,
                                                           options = list(`actions-box` = TRUE)
                                               ), #checkboxGroupInput
@@ -151,11 +178,11 @@ compareyearsPage <- tabPanel("Compare Years",
                                               
                                               selectInput("compareyears_watershed",
                                                           label="Select Watershed",
-                                                          choices = c("Indian Creek", "Bear", 
-                                                                      "Blue", "Morgan", "Mud", 
-                                                                      "North Bear", "Otter", 
-                                                                      "Lime"),
-                                                          selected="Lime"
+                                                          choices = c("Indian Creek", "Bear Creek", 
+                                                                      "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                                      "North Bear Creek", "Otter Creek", 
+                                                                      "Lime Creek"),
+                                                          selected="Lime Creek"
                                               ), #checkboxGroupInput
                                               
                                               pickerInput("compareyears_year",
@@ -200,7 +227,7 @@ sitePage <- tabPanel("Compare Sites",
                                               
                                               selectInput("site_watershed",
                                                           label="Select Watershed(s)",
-                                                          choices = c("Indian Creek", "Lime"),
+                                                          choices = c("Indian Creek", "Lime Creek"),
                                                           selected="Indian Creek"
                                               ), #selectInput
                                               
@@ -253,11 +280,11 @@ precipPage <- tabPanel("Precipitation Graph",
                                      
                                      selectInput("precip_watershed",
                                                  label = "Select Watershed",
-                                                 choices = c("Indian Creek", "Bear", 
-                                                             "Blue", "Morgan", "Mud", 
-                                                             "North Bear", "Otter", 
-                                                             "Lime"),
-                                                 selected = "Lime"
+                                                 choices = c("Indian Creek", "Bear Creek", 
+                                                             "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                             "North Bear Creek", "Otter Creek", 
+                                                             "Lime Creek"),
+                                                 selected = "Lime Creek"
                                                  
                                      ), #selectInput
                                      
@@ -303,14 +330,14 @@ datatablePage <- tabPanel("Table",
                                       
                                       pickerInput("table_watershed",
                                                   label="Select Watershed(s)",
-                                                  choices=c("Indian Creek", "Bear", 
-                                                            "Blue", "Morgan", "Mud", 
-                                                            "North Bear", "Otter", 
-                                                            "Lime"),
-                                                  selected=c("Indian Creek", "Bear", 
-                                                             "Blue", "Morgan", "Mud", 
-                                                             "North Bear", "Otter", 
-                                                             "Lime"),
+                                                  choices=c("Indian Creek", "Bear Creek", 
+                                                            "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                            "North Bear Creek", "Otter Creek", 
+                                                            "Lime Creek"),
+                                                  selected=c("Indian Creek", "Bear Creek", 
+                                                             "Blue Creek", "Morgan Creek", "Mud Creek", 
+                                                             "North Bear Creek", "Otter Creek", 
+                                                             "Lime Creek"),
                                                   multiple=T,
                                                   options = list(`actions-box` = TRUE)
                                                   ), #pickerInput
@@ -351,6 +378,9 @@ datatablePage <- tabPanel("Table",
 ui <- fluidPage(
   
   navbarPage("Watershed Project", position="static-top",
+
+             mapPage,
+             
              
              navbarMenu("Visualizations",
                         
@@ -384,30 +414,62 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  
+  watershed_shp_data <- watershed_shp
+  by_watershed <- watershed_data %>% group_by(Watershed) %>% summarize(value=mean(NO3_N, na.rm=T))
+  watershed_shp_data$value <- by_watershed$value[match(watershed_shp_data$Watershed, by_watershed$Watershed)]
+  
+  temp_data <- tidy(watershed_shp_data)
+  min_lat <- min(temp_data$lat)
+  max_lat <- max(temp_data$lat)
+  min_long <- min(temp_data$long)
+  max_long <- max(temp_data$long)
+  center_lat <- (min_lat+max_lat)/2
+  center_long <- (min_long+max_long)/2
+  
+  
+  output$map <- renderLeaflet({
+    
+    leaflet(options = leafletOptions(zoomSnap = 0.25, 
+                                                         zoomDelta = 0.25)) %>%
+      setView(center_long, center_lat, 9.4) %>%
+      setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
+      addTiles(options=providerTileOptions(minZoom=7)) %>%
+      addPolygons(data=watershed_shp_data, color = "#444444", weight = 1, smoothFactor = 0.5,
+                  opacity = 1.0, fillOpacity = 0.5,
+                  fillColor = ~colorQuantile("YlOrRd", value)(value),
+                  highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                      bringToFront = TRUE)) %>%
+      addMarkers(data=sites)
+    
+  }) #renderLeaflet
+  
+  
+  
   output$multyear_graph <- renderPlot({
     data <- switch(input$multyear_watershed,
                    "Indian Creek"=filter(watershed_data, Watershed=="Indian Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                    
-                   "Bear"=filter(watershed_data, Watershed=="Bear") %>%
+                   "Bear Creek"=filter(watershed_data, Watershed=="Bear Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "Blue"=filter(watershed_data, Watershed=="Blue") %>%
+                   "Blue Creek"=filter(watershed_data, Watershed=="Blue Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "Mud"=filter(watershed_data, Watershed=="Mud") %>%
+                   "Mud Creek"=filter(watershed_data, Watershed=="Mud Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "Morgan"=filter(watershed_data, Watershed=="Morgan") %>%
+                   "Morgan Creek"=filter(watershed_data, Watershed=="Morgan Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "North Bear"=filter(watershed_data, Watershed=="North Bear") %>%
+                   "North Bear Creek"=filter(watershed_data, Watershed=="North Bear Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "Otter"=filter(watershed_data, Watershed=="Otter") %>%
+                   "Otter Creek"=filter(watershed_data, Watershed=="Otter Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
                             
-                   "Lime"=filter(watershed_data, Watershed=="Lime") %>%
+                   "Lime Creek"=filter(watershed_data, Watershed=="Lime Creek") %>%
                      filter(Date < input$multyear_range[2] & Date > input$multyear_range[1]),
 
     ) #switch
@@ -424,13 +486,13 @@ server <- function(input, output, session) {
     
     data <- switch(input$dist_watershed,
                    "Indian Creek"=filter(watershed_data, Watershed=="Indian Creek"),
-                   "Bear"=filter(watershed_data, Watershed=="Bear"),
-                   "Blue"=filter(watershed_data, Watershed=="Blue"),
-                   "Mud"=filter(watershed_data, Watershed=="Mud"),
-                   "Morgan"=filter(watershed_data, Watershed=="Morgan"),
-                   "North Bear"=filter(watershed_data, Watershed=="North Bear"),
-                   "Otter"=filter(watershed_data, Watershed=="Otter"),
-                   "Lime"=filter(watershed_data, Watershed=="Lime")
+                   "Bear Creek"=filter(watershed_data, Watershed=="Bear Creek"),
+                   "Blue Creek"=filter(watershed_data, Watershed=="Blue Creek"),
+                   "Mud Creek"=filter(watershed_data, Watershed=="Mud Creek"),
+                   "Morgan Creek"=filter(watershed_data, Watershed=="Morgan Creek"),
+                   "North Bear Creek"=filter(watershed_data, Watershed=="North Bear Creek"),
+                   "Otter Creek"=filter(watershed_data, Watershed=="Otter Creek"),
+                   "Lime Creek"=filter(watershed_data, Watershed=="Lime Creek")
                    ) #switch
     
     data[,-(1:4)] %>%
