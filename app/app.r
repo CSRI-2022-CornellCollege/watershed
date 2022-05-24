@@ -9,6 +9,7 @@ library(broom)
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
 watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
+merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("../Data/watershed_geo/sites.shp")
 
 
@@ -21,7 +22,32 @@ mapPage <- tabPanel("Map",
                                    
                                    sidebarPanel(
                                      
-                                     leafletOutput("map")
+                                     leafletOutput("map"),
+                                     
+                                     selectInput("map_var",
+                                       label="Select Variable",
+                                       choices=c("DO", "Temp", "pH", "Cond",
+                                                 "Turb", "TSS", "DRP", "Cl",
+                                                 "NO3_N", "SO4", "E_coli"),
+                                       selected="NO3_N"
+                                       
+                                     ), #selectInput
+                                     
+                                     pickerInput("map_year",
+                                                 label="Select Year(s)",
+                                                 choices=c("2002", "2003", "2004", "2005",
+                                                           "2006", "2007", "2008", "2009",
+                                                           "2010", "2011", "2012", "2013",
+                                                           "2014", "2015", "2016", "2017",
+                                                           "2018", "2019", "2020", "2021"),
+                                                 selected=c("2002", "2003", "2004", "2005",
+                                                            "2006", "2007", "2008", "2009",
+                                                            "2010", "2011", "2012", "2013",
+                                                            "2014", "2015", "2016", "2017",
+                                                            "2018", "2019", "2020", "2021"),
+                                                 multiple=T,
+                                                 options = list(`actions-box` = TRUE)
+                                     ), #pickerInput
                                      
                                    ), #sidebarPanel
                                    
@@ -319,7 +345,7 @@ precipPage <- tabPanel("Precipitation Graph",
 
 
 # Table of all data
-datatablePage <- tabPanel("Table",
+datatablePage <- tabPanel("Data",
                       
                       sidebarLayout(fluid=T,
                                     
@@ -399,12 +425,8 @@ ui <- fluidPage(
                         
                         ), #navbarMenu
              
-             navbarMenu("Data",
-                        
                         datatablePage
-                        
-                        ) #navbarMenu
-             
+                      
              ) #navbarPage
   
 ) # fluidPage
@@ -415,9 +437,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   
-  watershed_shp_data <- watershed_shp
-  by_watershed <- watershed_data %>% group_by(Watershed) %>% summarize(value=mean(NO3_N, na.rm=T))
-  watershed_shp_data$value <- by_watershed$value[match(watershed_shp_data$Watershed, by_watershed$Watershed)]
+  watershed_shp_data <- merged_watershed_shp
   
   temp_data <- tidy(watershed_shp_data)
   min_lat <- min(temp_data$lat)
@@ -430,17 +450,27 @@ server <- function(input, output, session) {
   
   output$map <- renderLeaflet({
     
+    by_watershed <- watershed_data %>%
+      filter(substr(Date, 1, 4) %in% input$map_year) %>%
+      group_by(Watershed) %>%
+      summarize(value=mean(eval(as.name(input$map_var)), na.rm=T))
+    watershed_shp_data$value <- by_watershed$value[match(watershed_shp_data$Watershed, by_watershed$Watershed)]
+    
+    palette <- colorNumeric("YlOrRd", watershed_shp_data$value)
+    
     leaflet(options = leafletOptions(zoomSnap = 0.25, 
                                                          zoomDelta = 0.25)) %>%
       setView(center_long, center_lat, 9.4) %>%
       setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
-      addTiles(options=providerTileOptions(minZoom=7)) %>%
+      addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
+      addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
       addPolygons(data=watershed_shp_data, color = "#444444", weight = 1, smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~colorQuantile("YlOrRd", value)(value),
+                  fillColor = ~palette(value),
                   highlightOptions = highlightOptions(color = "white", weight = 2,
                                                       bringToFront = TRUE)) %>%
-      addMarkers(data=sites)
+      addMarkers(data=sites) %>%
+      addLegend(position="topright", pal=palette, values=watershed_shp_data$value, title=input$map_var)
     
   }) #renderLeaflet
   
