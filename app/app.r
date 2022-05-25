@@ -13,9 +13,22 @@ watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("../Data/watershed_geo/sites.shp")
 
+lime_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Lime Creek"]
+nbear_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="North Bear Creek"]
+blue_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Blue Creek"]
+otter_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Otter Creek"]
+indian_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Indian Creek"]
+morgan_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Morgan Creek"]
+bear_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Bear Creek"]
+mud_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Mud Creek"]
+
 options(shiny.sanitize.errors = FALSE)
 
 # Pages
+
+bottomPanel <- fluidRow(
+  tags$img(src="https://www.h-net.org/jobs/logo_view.php?id=59029&scale=0")
+) #fluidRow
 
 # Interactive Map
 mapPage <- tabPanel(div(class="navTab", "Map"),
@@ -90,13 +103,6 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                              max(watershed_data$Date))
                                                          ), #sliderInput
                                                          plotOutput("map_change_plot", height=250),
-                                                         sliderInput("map_dist_date",
-                                                                     label="Date Range",
-                                                                     min=min(watershed_data$Date),
-                                                                     max=max(watershed_data$Date),
-                                                                     value=c(min(watershed_data$Date),
-                                                                             max(watershed_data$Date))
-                                                         ), #sliderInput
                                                          plotOutput("map_dist_plot", height=250)
                                                          ) #column
                                                   
@@ -395,11 +401,12 @@ datatablePage <- tabPanel(div(class="navTab", "Data"),
                                       
                                     ), #sidebarPanel
                                     
-                                    mainPanel(
+                                    div(class="table", mainPanel(
                                       
                                       dataTableOutput("data_table")
                                       
                                     ) #mainPanel
+                                    ) #div
                                     
                       ) #sidebarLayout
                       
@@ -434,7 +441,7 @@ ui <- fluidPage(theme="shiny.css",
              
               datatablePage
                       
-             ) #navbarPage
+             ), #navbarPage
   
 ) # fluidPage
 
@@ -445,9 +452,7 @@ server <- function(input, output, session) {
   
   output$map_title <- renderText({ifelse(length(input$map_shape_click$id)>0, paste0(input$map_shape_click$id, " Watershed"), "Select a watershed to see visualizations")})
   
-  watershed_shp_data <- merged_watershed_shp
-  
-  temp_data <- tidy(watershed_shp_data)
+  temp_data <- tidy(merged_watershed_shp)
   min_lat <- min(temp_data$lat)
   max_lat <- max(temp_data$lat)
   min_long <- min(temp_data$long)
@@ -467,9 +472,11 @@ server <- function(input, output, session) {
       filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       group_by(Watershed) %>%
       summarize(value=mean(eval(as.name(input$map_var)), na.rm=T))
-    watershed_shp_data$value <- by_watershed$value[match(watershed_shp_data$Watershed, by_watershed$Watershed)]
+    merged_watershed_shp$value <- by_watershed$value[match(merged_watershed_shp$Watershed, by_watershed$Watershed)]
     
-    palette <- colorNumeric("RdYlGn", watershed_shp_data$value, reverse=T)
+    selected_watershed <- subset(merged_watershed_shp, merged_watershed_shp$Watershed==input$map_shape_click$id)
+    
+    palette <- colorNumeric("RdYlGn", merged_watershed_shp$value, reverse=T)
     
     map <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
                                                          zoomDelta = 0.25)) %>%
@@ -477,14 +484,16 @@ server <- function(input, output, session) {
       setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
       addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
-      addPolygons(data=watershed_shp_data, color = "#444444", weight = 1.5, smoothFactor = 0.5,
+      addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
                   fillColor = ~palette(value),
                   highlightOptions = highlightOptions(color = "white", weight = 2,
                                                       bringToFront = TRUE),
-                  label=paste0(watershed_shp_data$Watershed, " Watershed"),
+                  label=paste0(merged_watershed_shp$Watershed, " Watershed"),
                   layerId=~Watershed) %>%
-      addLegend(position="topright", pal=palette, values=watershed_shp_data$value, title=input$map_var) %>%
+      addPolygons(data=selected_watershed, color="white", opacity=1, fillOpacity=0, weight=5,highlightOptions = highlightOptions(color = "white", weight = 5,
+                                                                                                                                 bringToFront = TRUE)) %>%
+      addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title=input$map_var) %>%
       addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
       groupOptions("markers", zoomLevels=seq(9.5, 20, 0.25))
     
@@ -551,7 +560,7 @@ server <- function(input, output, session) {
   output$map_dist_plot <- renderPlot({
     
     watershed_data %>%
-      filter(Date < input$map_dist_date[2] & Date > input$map_dist_date[1]) %>%
+      filter(Date < input$map_change_date[2] & Date > input$map_change_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=eval(as.name(input$map_var))))+
       geom_histogram()+
@@ -757,8 +766,6 @@ server <- function(input, output, session) {
 
 
   output$data_table <- renderDataTable(new_data())
-  
-  
   
   # ensure app closes properly
   session$onSessionEnded(function() {

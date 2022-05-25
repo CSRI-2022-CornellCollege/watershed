@@ -1,6 +1,7 @@
 
 body {
   background-color: #BBBCBC;
+  color: #414042;
 }
 
 .navbar-default {
@@ -8,14 +9,14 @@ body {
 }
 
 .navbar-default .navbar-brand{
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 .navTab {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .navbar-nav li a:hover, .navbar-nav > .active > a {
-  background-color:#422760 !important;
+  background-color: #422760 !important;
 }
 
 
