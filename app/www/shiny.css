@@ -1,0 +1,29 @@
+
+body {
+  background-color: #BBBCBC;
+}
+
+.navbar-default {
+    background-color: #523178;
+}
+
+.navbar-default .navbar-brand{
+  color: #FFFFFF;
+}
+.navTab {
+  color: #FFFFFF;
+}
+
+.navbar-nav li a:hover, .navbar-nav > .active > a {
+  background-color:#422760 !important;
+}
+
+
+
+.shiny-output-error {
+  visibility: hidden;
+}
+
+.shiny-output-error:before {
+  visibility: hidden;
+}

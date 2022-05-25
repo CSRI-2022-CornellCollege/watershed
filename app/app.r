@@ -5,6 +5,7 @@ library(ggpubr)
 library(raster)
 library(leaflet)
 library(broom)
+library(jcolors)
 
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
@@ -12,17 +13,20 @@ watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("../Data/watershed_geo/sites.shp")
 
+options(shiny.sanitize.errors = FALSE)
 
 # Pages
 
 # Interactive Map
-mapPage <- tabPanel("Map",
+mapPage <- tabPanel(div(class="navTab", "Map"),
                      
                      sidebarLayout(fluid=T,
                                    
                                    sidebarPanel(
-                                     
+
                                      leafletOutput("map"),
+                                     
+                                     helpText("Zoom in to see sampling sites."),
                                      
                                      selectInput("map_var",
                                        label="Select Variable",
@@ -33,25 +37,77 @@ mapPage <- tabPanel("Map",
                                        
                                      ), #selectInput
                                      
-                                     pickerInput("map_year",
-                                                 label="Select Year(s)",
-                                                 choices=c("2002", "2003", "2004", "2005",
-                                                           "2006", "2007", "2008", "2009",
-                                                           "2010", "2011", "2012", "2013",
-                                                           "2014", "2015", "2016", "2017",
-                                                           "2018", "2019", "2020", "2021"),
-                                                 selected=c("2002", "2003", "2004", "2005",
-                                                            "2006", "2007", "2008", "2009",
-                                                            "2010", "2011", "2012", "2013",
-                                                            "2014", "2015", "2016", "2017",
-                                                            "2018", "2019", "2020", "2021"),
-                                                 multiple=T,
-                                                 options = list(`actions-box` = TRUE)
-                                     ), #pickerInput
+                                     sliderInput("map_date",
+                                                 label="Date Range",
+                                                 min=min(watershed_data$Date),
+                                                 max=max(watershed_data$Date),
+                                                 value=c(min(watershed_data$Date),
+                                                         max(watershed_data$Date))
+                                     ) #sliderInput
                                      
+
                                    ), #sidebarPanel
                                    
                                    mainPanel(
+                                     
+                                     navbarPage("",
+                                                
+                                       tabPanel(div(class="navTab", "Plots"),
+                                                fluidPage(
+                                                  h2(strong(textOutput("map_title"), style="text-align: center;")),
+                                                  br(),
+                                                  column(6,
+                                                         pickerInput("map_years_year",
+                                                                     label="Select Year(s)",
+                                                                     choices=c("2002", "2003", "2004", "2005",
+                                                                               "2006", "2007", "2008", "2009",
+                                                                               "2010", "2011", "2012", "2013",
+                                                                               "2014", "2015", "2016", "2017",
+                                                                               "2018", "2019", "2020", "2021"),
+                                                                     selected=c("2021", "2020", "2019"),
+                                                                     multiple=T,
+                                                                     options = list(`actions-box` = TRUE)
+                                                         ), #pickerInput
+                                                         plotOutput("map_years_plot", height=250),
+                                                         br(),
+                                                         selectInput("map_sites_year",
+                                                                     label="Select Year",
+                                                                     choices=c("2002", "2003", "2004", "2005",
+                                                                               "2006", "2007", "2008", "2009",
+                                                                               "2010", "2011", "2012", "2013",
+                                                                               "2014", "2015", "2016", "2017",
+                                                                               "2018", "2019", "2020", "2021"),
+                                                                     selected="2021",
+                                                         ), #pickerInput
+                                                         plotOutput("map_sites_plot", height=250)
+                                                         ), #column
+                                                  column(6,
+                                                         sliderInput("map_change_date",
+                                                                     label="Date Range",
+                                                                     min=min(watershed_data$Date),
+                                                                     max=max(watershed_data$Date),
+                                                                     value=c(min(watershed_data$Date),
+                                                                             max(watershed_data$Date))
+                                                         ), #sliderInput
+                                                         plotOutput("map_change_plot", height=250),
+                                                         sliderInput("map_dist_date",
+                                                                     label="Date Range",
+                                                                     min=min(watershed_data$Date),
+                                                                     max=max(watershed_data$Date),
+                                                                     value=c(min(watershed_data$Date),
+                                                                             max(watershed_data$Date))
+                                                         ), #sliderInput
+                                                         plotOutput("map_dist_plot", height=250)
+                                                         ) #column
+                                                  
+                                                  
+                                                ) #fluidPage
+                                                ), #tabPanel
+                                       
+                                       tabPanel(div(class="navTab", "Overview"),
+                                                h3("information about watershed goes here")
+                                                ) #tabPanel
+                                     )
                                      
                                      
                                      
@@ -193,53 +249,6 @@ oneyearchangePage <- tabPanel("One Year Change",
                               
                       ) #tabPanel
 
-compareyearsPage <- tabPanel("Compare Years",
-                              
-                              sidebarLayout(fluid=T,
-                                            
-                                            sidebarPanel(
-                                              
-                                              h3("Compare Years"),
-                                              br(),
-                                              
-                                              selectInput("compareyears_watershed",
-                                                          label="Select Watershed",
-                                                          choices = c("Indian Creek", "Bear Creek", 
-                                                                      "Blue Creek", "Morgan Creek", "Mud Creek", 
-                                                                      "North Bear Creek", "Otter Creek", 
-                                                                      "Lime Creek"),
-                                                          selected="Lime Creek"
-                                              ), #checkboxGroupInput
-                                              
-                                              pickerInput("compareyears_year",
-                                                          label="Select Year(s)",
-                                                          choices=c("2002", "2003", "2004", "2005",
-                                                                    "2006", "2007", "2008", "2009",
-                                                                    "2010", "2011", "2012", "2013",
-                                                                    "2014", "2015", "2016", "2017",
-                                                                    "2018", "2019", "2020", "2021"),
-                                                          selected=c("2021", "2020"),
-                                                          multiple=T,
-                                                          options = list(`actions-box` = TRUE)
-                                              ), #pickerInput
-                                              selectInput("compareyears_var",
-                                                          label = "Select Variable",
-                                                          choices = c("DO", "Temp", "pH", "Cond",
-                                                                      "Turb", "TSS", "DRP", "Cl",
-                                                                      "NO3_N", "SO4", "E_coli"),
-                                                          selected = "NO3_N"
-                                                          
-                                              ), #selectInput
-                                              
-                                            ), #sidebarPanel
-                                            
-                                            mainPanel(
-                                              plotOutput("compareyears_graph")
-                                            ) #mainPanel
-                                            
-                              ) #sidebarLayout
-                              
-) #tabPanel
 
 
 sitePage <- tabPanel("Compare Sites",
@@ -345,7 +354,7 @@ precipPage <- tabPanel("Precipitation Graph",
 
 
 # Table of all data
-datatablePage <- tabPanel("Data",
+datatablePage <- tabPanel(div(class="navTab", "Data"),
                       
                       sidebarLayout(fluid=T,
                                     
@@ -401,31 +410,29 @@ datatablePage <- tabPanel("Data",
 
 # Structure
 
-ui <- fluidPage(
+ui <- fluidPage(theme="shiny.css",
   
   navbarPage("Watershed Project", position="static-top",
-
+             
              mapPage,
              
              
-             navbarMenu("Visualizations",
-                        
-                        distPage,
-                        
-                        multyearchangePage,
-                        
-                        oneyearchangePage,
-                        
-                        compareyearsPage,
-                        
-                        sitePage,
-                        
-                        precipPage
-                        
-                        
-                        ), #navbarMenu
+             # navbarMenu(div(class="navTab", "Visualizations"),
+             #            
+             #            distPage,
+             #            
+             #            multyearchangePage,
+             #            
+             #            oneyearchangePage,
+             #            
+             #            sitePage,
+             #            
+             #            precipPage
+             #            
+             #            
+             #            ), #navbarMenu
              
-                        datatablePage
+              datatablePage
                       
              ) #navbarPage
   
@@ -436,6 +443,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  output$map_title <- renderText({ifelse(length(input$map_shape_click$id)>0, paste0(input$map_shape_click$id, " Watershed"), "Select a watershed to see visualizations")})
   
   watershed_shp_data <- merged_watershed_shp
   
@@ -447,33 +455,112 @@ server <- function(input, output, session) {
   center_lat <- (min_lat+max_lat)/2
   center_long <- (min_long+max_long)/2
   
+  siteIcon <- makeIcon(
+    iconUrl="https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_2/v1620195943/brentwoodk12nyus/wivrch9gpckn4nvyconr/experiment-1295041_1280.png",
+    iconWidth = 25, iconHeight = 24
+  )
+  
   
   output$map <- renderLeaflet({
     
     by_watershed <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$map_year) %>%
+      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       group_by(Watershed) %>%
       summarize(value=mean(eval(as.name(input$map_var)), na.rm=T))
     watershed_shp_data$value <- by_watershed$value[match(watershed_shp_data$Watershed, by_watershed$Watershed)]
     
-    palette <- colorNumeric("YlOrRd", watershed_shp_data$value)
+    palette <- colorNumeric("RdYlGn", watershed_shp_data$value, reverse=T)
     
-    leaflet(options = leafletOptions(zoomSnap = 0.25, 
+    map <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
                                                          zoomDelta = 0.25)) %>%
-      setView(center_long, center_lat, 9.4) %>%
+      setView(center_long, center_lat, 9.5) %>%
       setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
       addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
       addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
-      addPolygons(data=watershed_shp_data, color = "#444444", weight = 1, smoothFactor = 0.5,
+      addPolygons(data=watershed_shp_data, color = "#444444", weight = 1.5, smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
                   fillColor = ~palette(value),
                   highlightOptions = highlightOptions(color = "white", weight = 2,
-                                                      bringToFront = TRUE)) %>%
-      addMarkers(data=sites) %>%
-      addLegend(position="topright", pal=palette, values=watershed_shp_data$value, title=input$map_var)
+                                                      bringToFront = TRUE),
+                  label=paste0(watershed_shp_data$Watershed, " Watershed"),
+                  layerId=~Watershed) %>%
+      addLegend(position="topright", pal=palette, values=watershed_shp_data$value, title=input$map_var) %>%
+      addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
+      groupOptions("markers", zoomLevels=seq(9.5, 20, 0.25))
+    
+    map
+    
     
   }) #renderLeaflet
   
+  
+  output$map_years_plot <- renderPlot({
+    
+    line_data <- watershed_data %>%
+      mutate(year=substr(Date, 1, 4)) %>%
+      mutate(day=as.Date(paste0("0000-", substr(Date, 6, 10)))) %>%
+      filter(year %in% input$map_years_year) %>%
+      filter(Watershed==input$map_shape_click$id) %>%
+      group_by(Watershed, year, day) %>%
+      summarize(avg=mean(eval(as.name(input$map_var))))
+    
+    ggplot(data=line_data, aes(x=day, y=avg, color=year))+
+      geom_line()+
+      geom_point()+
+      xlab("Date")+
+      ylab(input$map_var)+
+      ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
+      labs(color="Year")+
+      theme_minimal()
+      
+    
+  }) #renderPlot
+  
+  
+  output$map_sites_plot <- renderPlot({
+    
+    watershed_data %>%
+      filter(substr(Date, 1, 4) %in% input$map_sites_year) %>%
+      filter(Watershed==input$map_shape_click$id) %>%
+      ggplot(aes(y=eval(as.name(input$map_var)), x=Date, color=Site))+
+      geom_line()+
+      geom_point()+
+      xlab("Date")+
+      ylab(input$map_var)+
+      ggtitle(paste0("Comparison of ", input$map_var, " by site"))+
+      theme_minimal()
+    
+  }) #renderPlot
+  
+  
+  output$map_change_plot <- renderPlot({
+    
+    watershed_data %>%
+      filter(Date < input$map_change_date[2] & Date > input$map_change_date[1]) %>%
+      filter(Watershed==input$map_shape_click$id) %>%
+      ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
+      geom_point()+
+      xlab("Date")+
+      ylab(input$map_var)+
+      ggtitle(paste0("Observed ", input$map_var))+
+      theme_minimal()
+
+  }) #renderPlot
+  
+  
+  output$map_dist_plot <- renderPlot({
+    
+    watershed_data %>%
+      filter(Date < input$map_dist_date[2] & Date > input$map_dist_date[1]) %>%
+      filter(Watershed==input$map_shape_click$id) %>%
+      ggplot(aes(x=eval(as.name(input$map_var))))+
+      geom_histogram()+
+      xlab("Count")+
+      ylab(input$map_var)+
+      ggtitle(paste0("Distribution of ", input$map_var))+
+      theme_minimal()
+    
+  }) #renderPlot
   
   
   output$multyear_graph <- renderPlot({
