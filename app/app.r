@@ -13,15 +13,6 @@ watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("../Data/watershed_geo/sites.shp")
 
-lime_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Lime Creek"]
-nbear_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="North Bear Creek"]
-blue_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Blue Creek"]
-otter_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Otter Creek"]
-indian_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Indian Creek"]
-morgan_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Morgan Creek"]
-bear_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Bear Creek"]
-mud_poly <- merged_watershed_shp[merged_watershed_shp$Watershed=="Mud Creek"]
-
 options(shiny.sanitize.errors = FALSE)
 
 # Pages
@@ -64,12 +55,34 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                    mainPanel(
                                      
                                      navbarPage("", id="map_nav",
+                                       
                                                 
+                                        # Overview of watershed data, some graphs and explanations are inlcuded
                                        tabPanel(div(class="navTab", "Overview"), value="overview_tab",
-                                                         h3("information about watershed goes here")
+                                                h3("information about watershed goes here"),
+                                                fluidPage(
+                                                  column(6,
+                                                         
+                                                         ),
+                                                  column(6,
+                                                         selectInput("overview_year",
+                                                                     label="Select Year",
+                                                                     choices=c("2002", "2003", "2004", "2005",
+                                                                               "2006", "2007", "2008", "2009",
+                                                                               "2010", "2011", "2012", "2013",
+                                                                               "2014", "2015", "2016", "2017",
+                                                                               "2018", "2019", "2020", "2021"),
+                                                                     selected="2021",
+                                                         ), #selectInput
+                                                         plotOutput("overview_watersheds")
+                                                         ) #column
+                                                  
+                                                ) #fluidPage
+                                                
                                        ), #tabPanel
                                                 
-                                                
+                                         
+                                       # This page is for displaying graphs of a certain watershed when a user clicks on it in the interactive map       
                                        tabPanel(div(class="navTab", "Plots"), value="plots_tab",
                                                 fluidPage(
                                                   h2(strong(textOutput("map_title"), style="text-align: center;")),
@@ -251,6 +264,32 @@ ui <- fluidPage(theme="shiny.css",
 
 server <- function(input, output, session) {
   
+  #
+  # Overview Page
+  #
+  
+  output$overview_watersheds <- renderPlot({
+    
+    watershed_data %>%
+      filter(substr(Date, 1, 4) == input$overview_year) %>%
+      group_by(Watershed, Date) %>%
+      summarize(value = mean(eval(as.name(input$map_var)))) %>%
+      ggplot(aes(x=Date, y=value, color=Watershed))+
+      geom_line()+
+      geom_point()+
+      ylab(input$map_var)+
+      ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
+      theme_minimal()
+    
+  }) #renderPlot
+  
+  
+  
+  
+  #
+  # Plots Page
+  #
+  
   # Header of plots page
   output$map_title <- renderText({ifelse(length(input$map_shape_click$id)>0, paste0(input$map_shape_click$id, " Watershed"), "Select a watershed to see visualizations")})
   
@@ -405,6 +444,12 @@ server <- function(input, output, session) {
     
   }) #renderPlot
   
+  
+  
+  
+  #
+  # Precipitation Page
+  #
   
   output$precip_graph <- renderPlot({
     
