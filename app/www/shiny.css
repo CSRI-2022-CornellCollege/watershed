@@ -19,6 +19,10 @@ body {
   background-color: #422760 !important;
 }
 
+.overview_info {
+  color: #FFFFFF;
+}
+
 
 
 .shiny-output-error {
