@@ -59,11 +59,14 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                 
                                         # Overview of watershed data, some graphs and explanations are inlcuded
                                        tabPanel(div(class="navTab", "Overview"), value="overview_tab",
-                                                h3("information about watershed goes here"),
                                                 fluidPage(
                                                   column(6,
-                                                         
-                                                         ),
+                                                         h3(strong("About the Dashboard")),
+                                                         br(),
+                                                         p("Dr. Martin St. Clair, along with his students, has been collecting water samples from watersheds near Cedar Rapids, Iowa since 2002. These samples are tested for many different variables with an emphasis on different chemical concentrations in the water.", style="font-size: 20px;"),
+                                                         br(),
+                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. The graph on the right shows the change of a variable over the course of one year in all watersheds.", style="font-size: 20px;")
+                                                         ), #column
                                                   column(6,
                                                          selectInput("overview_year",
                                                                      label="Select Year",
