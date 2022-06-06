@@ -78,7 +78,8 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                                "2018", "2019", "2020", "2021"),
                                                                      selected="2021",
                                                          ), #selectInput
-                                                         plotOutput("overview_watersheds"),
+                                                         plotOutput("overview_watersheds", height=250),
+                                                         br(),
                                                          plotOutput("overview_spider_plot")
                                                          ) #column
                                                   
@@ -440,6 +441,7 @@ server <- function(input, output, session) {
   
   
   #Rendering spider plot for overview page
+  par(mar = c(4, 4, 0.1, 0.1))
   output$overview_spider_plot <- renderPlot({
     
     max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
@@ -464,6 +466,7 @@ server <- function(input, output, session) {
                pcol = c("blue", "red"),        # Color of the line
                plwd = 2,        # Width of the line
                plty = 1)
+    legend("topleft", legend=c("Actual Values", "Safe Levels"), col=c("Blue", "Red"), bty = "n", pch=20)
 
   }) #renderPlot
   
