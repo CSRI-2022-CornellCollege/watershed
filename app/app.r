@@ -418,6 +418,7 @@ server <- function(input, output, session) {
     
     data <- watershed_data %>%
       filter(Watershed==input$map_shape_click$id) %>%
+      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       dplyr::select(10:15) %>%
       summarize_all(mean, na.rm=T)
     
