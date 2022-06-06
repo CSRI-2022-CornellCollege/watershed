@@ -435,7 +435,9 @@ server <- function(input, output, session) {
                cglwd = 1,       # Line width of the grid
                pcol = c("blue", "red"),        # Color of the line
                plwd = 2,        # Width of the line
-               plty = 1)
+               plty = 1,
+               title=paste0("Chemical concentrations in the", input$map_shape_click$id, " Watershed"))
+    legend("topleft", legend=c("Actual Values", "Safe Levels"), col=c("Blue", "Red"), bty = "n", pch=20)
     
   }) #renderPlot
   
@@ -465,7 +467,8 @@ server <- function(input, output, session) {
                cglwd = 1,       # Line width of the grid
                pcol = c("blue", "red"),        # Color of the line
                plwd = 2,        # Width of the line
-               plty = 1)
+               plty = 1,
+               title=paste0(input$map_var, " by watershed"))
     legend("topleft", legend=c("Actual Values", "Safe Levels"), col=c("Blue", "Red"), bty = "n", pch=20)
 
   }) #renderPlot
