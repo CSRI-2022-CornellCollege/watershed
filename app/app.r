@@ -6,6 +6,7 @@ library(raster)
 library(leaflet)
 library(broom)
 library(jcolors)
+library(fmsb)
 
 watershed_data <- read_csv("../Data/combined_data_clean2.csv")
 rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
@@ -104,16 +105,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          ), #pickerInput
                                                          plotOutput("map_years_plot", height=250),
                                                          br(),
-                                                         selectInput("map_sites_year",
-                                                                     label="Select Year",
-                                                                     choices=c("2002", "2003", "2004", "2005",
-                                                                               "2006", "2007", "2008", "2009",
-                                                                               "2010", "2011", "2012", "2013",
-                                                                               "2014", "2015", "2016", "2017",
-                                                                               "2018", "2019", "2020", "2021"),
-                                                                     selected="2021",
-                                                         ), #pickerInput
-                                                         plotOutput("map_sites_plot", height=250)
+                                                         plotOutput("map_spider_plot")
                                                          ), #column
                                                   column(6,
                                                          sliderInput("map_change_date",
@@ -401,21 +393,54 @@ server <- function(input, output, session) {
     
   }) #renderPlot
   
-  # Plot comparing sites for a given variable
-  output$map_sites_plot <- renderPlot({
+  
+  # Spider Plot
+  
+  #Safe levels for different variables to be displayed on the spider plot
+  safe_levels <- c(max_TSS, 0.1, 4, 10, max_SO4, max_E_coli)
+  
+  #Setting min and max ranges for spider plot
+  max_TSS <- quantile(watershed_data$TSS, p=0.9, na.rm=T)
+  max_DRP <- quantile(watershed_data$DRP, p=0.9, na.rm=T)
+  max_Cl <- quantile(watershed_data$Cl, p=0.9, na.rm=T)
+  max_NO3_N <- quantile(watershed_data$NO3_N, p=0.9, na.rm=T)
+  max_SO4 <- quantile(watershed_data$SO4, p=0.9, na.rm=T)
+  max_E_coli <- quantile(watershed_data$E_coli, p=0.9, na.rm=T)
+  
+  max_values <- c(max_TSS, max_DRP, max_Cl, max_NO3_N, max_SO4, max_E_coli)
+  
+  min_values <- watershed_data %>%
+    dplyr::select(10:15) %>%
+    summarize_all(min, na.rm=T)
+  
+  #Rendering spider plot
+  output$map_spider_plot <- renderPlot({
     
-    watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$map_sites_year) %>%
+    data <- watershed_data %>%
       filter(Watershed==input$map_shape_click$id) %>%
-      ggplot(aes(y=eval(as.name(input$map_var)), x=Date, color=Site))+
-      geom_line()+
-      geom_point()+
-      xlab("Date")+
-      ylab(input$map_var)+
-      ggtitle(paste0("Comparison of ", input$map_var, " by site"))+
-      theme_minimal()
+      dplyr::select(10:15) %>%
+      summarize_all(mean, na.rm=T)
+    
+    data <- rbind(min_values, data)
+    data <- rbind(max_values, data)
+    data <- rbind(data, safe_levels)
+    
+    radarchart(data,
+               cglty = 1,       # Grid line type
+               cglcol = "gray", # Grid line color
+               cglwd = 1,       # Line width of the grid
+               pcol = c("blue", "red"),        # Color of the line
+               plwd = 2,        # Width of the line
+               plty = 1)
     
   }) #renderPlot
+  
+  
+  # Precipitation Plot
+  output$map_precip_plot <- renderPlot({
+    
+  })
+  
   
   # Plot showing observations of variable over a given time
   output$map_change_plot <- renderPlot({
