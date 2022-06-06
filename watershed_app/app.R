@@ -7,12 +7,13 @@ library(leaflet)
 library(broom)
 library(jcolors)
 library(fmsb)
+library(rgdal)
 
-watershed_data <- read_csv("../Data/combined_data_clean2.csv")
-rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
-watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
-merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
-sites <- shapefile("../Data/watershed_geo/sites.shp")
+watershed_data <- read_csv("data/combined_data_clean2.csv")
+rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
+watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
+merged_watershed_shp <- shapefile("data/watershed_geo/merged_watersheds.shp")
+sites <- shapefile("data/watershed_geo/sites.shp")
 
 options(shiny.sanitize.errors = FALSE)
 
