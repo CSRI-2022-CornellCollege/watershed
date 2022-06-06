@@ -78,7 +78,8 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                                "2018", "2019", "2020", "2021"),
                                                                      selected="2021",
                                                          ), #selectInput
-                                                         plotOutput("overview_watersheds")
+                                                         plotOutput("overview_watersheds"),
+                                                         plotOutput("overview_spider_plot")
                                                          ) #column
                                                   
                                                 ) #fluidPage
@@ -394,10 +395,7 @@ server <- function(input, output, session) {
   }) #renderPlot
   
   
-  # Spider Plot
-  
-  #Safe levels for different variables to be displayed on the spider plot
-  safe_levels <- c(max_TSS, 0.1, 4, 10, max_SO4, max_E_coli)
+  # Spider Plots
   
   #Setting min and max ranges for spider plot
   max_TSS <- quantile(watershed_data$TSS, p=0.9, na.rm=T)
@@ -413,7 +411,11 @@ server <- function(input, output, session) {
     dplyr::select(10:15) %>%
     summarize_all(min, na.rm=T)
   
-  #Rendering spider plot
+  #Safe levels for different variables to be displayed on the spider plot
+  safe_levels <- as.data.frame(t(c(max_TSS, 0.1, 4, 10, max_SO4, max_E_coli)))
+  colnames(safe_levels) <- c("TSS", "DRP", "Cl", "NO3_N", "SO4", "E_coli")
+  
+  #Rendering spider plot for watershed page
   output$map_spider_plot <- renderPlot({
     
     data <- watershed_data %>%
@@ -434,6 +436,35 @@ server <- function(input, output, session) {
                plwd = 2,        # Width of the line
                plty = 1)
     
+  }) #renderPlot
+  
+  
+  #Rendering spider plot for overview page
+  output$overview_spider_plot <- renderPlot({
+    
+    max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
+    min_values <- rep(min(watershed_data[[input$map_var]], na.rm=T), 8)
+    
+    
+    data_temp <- watershed_data %>%
+      group_by(Watershed) %>%
+      summarize(mean=mean(eval(as.name(input$map_var)), na.rm=T))
+
+    data <- as.data.frame(t(data_temp[,-1]))
+    colnames(data) <- data_temp$Watershed
+    
+    data <- rbind(min_values, data)
+    data <- rbind(max_values, data)
+    data <- rbind(data, rep(safe_levels[[input$map_var]], 8))
+
+    radarchart(data,
+               cglty = 1,       # Grid line type
+               cglcol = "gray", # Grid line color
+               cglwd = 1,       # Line width of the grid
+               pcol = c("blue", "red"),        # Color of the line
+               plwd = 2,        # Width of the line
+               plty = 1)
+
   }) #renderPlot
   
   
