@@ -11,6 +11,7 @@ library(rgdal)
 
 watershed_data <- read_csv("data/combined_data_clean2.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
+watershed_rain_data <- read_csv("data/rain_data/watershed_rain_data.csv")
 watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("data/watershed_geo/sites.shp")
@@ -30,10 +31,12 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                    
                                    sidebarPanel(
                                      
-                                     leafletOutput("map"),
+                                     # Map
+                                     leafletOutput("map", height=500),
                                      
-                                     helpText("Zoom in to see sampling sites."),
+                                     helpText("Zoom in to see sampling sites. Select a watershed to see more information."),
                                      
+                                     # Choose variable to display on map
                                      selectInput("map_var",
                                        label="Select Variable",
                                        choices=c("DO", "Temp", "pH", "Cond",
@@ -43,6 +46,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                        
                                      ), #selectInput
                                      
+                                     # Choose date range for data on map
                                      sliderInput("map_date",
                                                  label="Date Range",
                                                  min=min(watershed_data$Date),
@@ -70,6 +74,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. The graph on the right shows the change of a variable over the course of one year in all watersheds.", style="font-size: 20px;")
                                                          ), #column
                                                   column(6,
+                                                         # Select year to display on graph
                                                          selectInput("overview_year",
                                                                      label="Select Year",
                                                                      choices=c("2002", "2003", "2004", "2005",
@@ -79,8 +84,11 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                                "2018", "2019", "2020", "2021"),
                                                                      selected="2021",
                                                          ), #selectInput
+                                                         
+                                                         # Overview line graph
                                                          plotOutput("overview_watersheds", height=250),
                                                          br(),
+                                                         # Overview spider plot
                                                          plotOutput("overview_spider_plot")
                                                          ) #column
                                                   
@@ -95,6 +103,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                   h2(strong(textOutput("map_title"), style="text-align: center;")),
                                                   br(),
                                                   column(6,
+                                                         # Choose years
                                                          pickerInput("map_years_year",
                                                                      label="Select Year(s)",
                                                                      choices=c("2002", "2003", "2004", "2005",
@@ -106,11 +115,15 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      multiple=T,
                                                                      options = list(`actions-box` = TRUE)
                                                          ), #pickerInput
+                                                         
+                                                         # Years plot
                                                          plotOutput("map_years_plot", height=250),
                                                          br(),
+                                                         # Spider plot
                                                          plotOutput("map_spider_plot")
                                                          ), #column
                                                   column(6,
+                                                         # Choose date range
                                                          sliderInput("map_change_date",
                                                                      label="Date Range",
                                                                      min=min(watershed_data$Date),
@@ -118,7 +131,9 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      value=c(min(watershed_data$Date),
                                                                              max(watershed_data$Date))
                                                          ), #sliderInput
+                                                         # Scatterplot
                                                          plotOutput("map_change_plot", height=250),
+                                                         # Histogram
                                                          plotOutput("map_dist_plot", height=250)
                                                          ) #column
                                                   
@@ -138,49 +153,21 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
 ) #tabPanel
 
 
-precipPage <- tabPanel("Precipitation Graph",
-                     
-                     sidebarLayout(fluid=T,
-                                   
-                                   sidebarPanel(
-                                     
-                                     h3("Precipitation Graphs"),
-                                     br(),
-                                     
-                                     selectInput("precip_watershed",
-                                                 label = "Select Watershed",
-                                                 choices = c("Indian Creek", "Bear Creek", 
-                                                             "Blue Creek", "Morgan Creek", "Mud Creek", 
-                                                             "North Bear Creek", "Otter Creek", 
-                                                             "Lime Creek"),
-                                                 selected = "Lime Creek"
-                                                 
-                                     ), #selectInput
-                                     
-                                     sliderInput("precip_year",
-                                                 label="Select Year",
-                                                 min=2002,
-                                                 max=2021,
-                                                 value=c(2002, 2021)
-                                     ), #selectInput
-                                     
-                                     selectInput("precip_var",
-                                                 label = "Select Variable",
-                                                 choices = c("DO", "Temp", "pH", "Cond",
-                                                             "Turb", "TSS", "DRP", "Cl",
-                                                             "NO3_N", "SO4", "E_coli"),
-                                                 selected = "NO3_N"
-                                                 
-                                     ) #selectInput
-
-                                   ), #sidebarPanel
-                                   
-                                   mainPanel(
-                                     plotOutput("precip_graph")
-                                   ) #mainPanel
-                                   
-                     ) #sidebarLayout
-                     
+# Precipitation Page
+precipPage <- tabPanel(div(class="navTab", "Precipitation"),
+                       
+                       column(6,
+                              leafletOutput("precip_map", height=650),
+                              helpText("Zoom in to see sampling sites. Select a watershed to see more information."),
+                              sliderInput("precip_date",
+                                          label="Date Range",
+                                          min=min(watershed_data$Date),
+                                          max=max(watershed_data$Date),
+                                          value=c(min(watershed_data$Date),
+                                                  max(watershed_data$Date))
+                              ), #sliderInput
+                              )
+                       
 ) #tabPanel
 
 
@@ -251,7 +238,9 @@ ui <- fluidPage(theme="shiny.css",
              
              mapPage,
              
-              datatablePage
+             precipPage,
+             
+             datatablePage
                       
              ), #navbarPage
   
@@ -263,7 +252,7 @@ ui <- fluidPage(theme="shiny.css",
 server <- function(input, output, session) {
   
   #
-  # Overview Page
+  # Map Page- Overview Tab
   #
   
   output$overview_watersheds <- renderPlot({
@@ -285,7 +274,7 @@ server <- function(input, output, session) {
   
   
   #
-  # Plots Page
+  # Map Page - Plots Tab
   #
   
   # Header of plots page
@@ -475,12 +464,6 @@ server <- function(input, output, session) {
   }) #renderPlot
   
   
-  # Precipitation Plot
-  output$map_precip_plot <- renderPlot({
-    
-  })
-  
-  
   # Plot showing observations of variable over a given time
   output$map_change_plot <- renderPlot({
     
@@ -518,37 +501,67 @@ server <- function(input, output, session) {
   # Precipitation Page
   #
   
-  output$precip_graph <- renderPlot({
+  output$precip_map<- renderLeaflet({
     
-    plot1 <- watershed_data %>%
-      mutate(Year = as.numeric(substr(Date, 1, 4))) %>%
-      filter(Year > input$precip_year[1] & Year < input$precip_year[2]) %>%
-      mutate(Year = as.Date(paste0(substr(Date, 1, 4), "-01-01"))) %>%
-      filter(Watershed==input$precip_watershed) %>%
-      group_by(Year) %>%
-      summarize(avg=mean(eval(as.name(input$precip_var)))) %>%
-      ggplot(aes(x=Year, y=avg))+
-      geom_line()+
-      geom_point()+
-      ylab(input$precip_var)+
-      theme_minimal()
+    rain_data <- watershed_rain_data %>%
+      filter(Date > input$precip_date[1] & Date < input$precip_date[2])
     
-    plot2 <- rainfall_data %>%
-      mutate(Year = as.numeric(substr(Date, 1, 4))) %>%
-      filter(Year > input$precip_year[1] & Year < input$precip_year[2]) %>%
-      mutate(Year = as.Date(paste0(substr(Date, 1, 4), "-01-01"))) %>%
-      group_by(Year) %>%
-      summarize(avg=mean(Estimate)) %>%
-      ggplot(aes(x=Year, y=avg))+
-      geom_line()+
-      geom_point()+
-      ylab("Rainfall Estimate")+
-      theme_minimal()
+    rain_data <- rain_data[,-1] %>%
+      summarize_all(mean, na.rm=T) %>%
+      t() %>%
+      as.data.frame()
+    rain_data$Watershed <- rownames(rain_data)
+    rain_data <- mutate(rain_data, Watershed=paste0(Watershed, " Creek"))
+    rain_data[7,2] <- "North Bear Creek"
     
-    ggarrange(plot1, plot2, ncol=1, nrow=2)
+    by_watershed <- watershed_data %>%
+      group_by(Watershed) %>%
+      summarize(value=mean(NO3_N, na.rm=T))
     
-  }) #renderPlot
+    merged_watershed_shp$value <- rain_data$V1[match(merged_watershed_shp$Watershed, rain_data$Watershed)]
+    
+    # Color palette
+    palette <- colorNumeric("Blues", merged_watershed_shp$value)
+    
+    # Leaflet map
+    map <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
+                                            zoomDelta = 0.25)) %>%
+      # View and bounds
+      setView(center_long, center_lat, 10) %>%
+      setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
+      
+      # Using ESRI NatGeoWorldMap for background
+      addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
+      
+      # Adding lines for subwatersheds
+      addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
+      
+      # Adding polgyons for watersheds
+      addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 0.5,
+                  opacity = 1.0, fillOpacity = 0.5,
+                  fillColor = ~palette(value),
+                  highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                      bringToFront = TRUE),
+                  label=paste0(merged_watershed_shp$Watershed, " Watershed"),
+                  layerId=~Watershed) %>%
+      
+      # Add legend
+      addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title="Precipitation (inches)") %>%
+      
+      # Add markers and set visibility according to zoom level
+      addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
+      groupOptions("markers", zoomLevels=seq(10, 20, 0.25))
+    
+    map
+    
+  }) #renderLeaflet
   
+  
+  
+
+  #
+  # Data table page
+  #
   
   new_data <- reactive({
     watershed_data %>%
@@ -557,8 +570,7 @@ server <- function(input, output, session) {
       filter(Date > input$table_date[1] & Date < input$table_date[2])
     
   }) #reactive
-
-
+  
   output$data_table <- renderDataTable(new_data())
   
   # ensure app closes properly
