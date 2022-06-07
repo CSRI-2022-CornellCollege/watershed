@@ -16,6 +16,7 @@ watershed_rain_data <- data.frame(Date=bear_rain$Date,
                                   Mud=mud_rain$Estimate,
                                   NBear=nbear_rain$Estimate,
                                   Otter=otter_rain$Estimate)
+names(watershed_rain_data) <- c("Bear Creek", "Blue Creek", "Indian Creek", "Lime Creek", "Morgan Creek", "Mud Creek", "North Bear Creek", "Otter Creek")
 
 write_csv(watershed_rain_data, "Data/rain_data/watershed_rain_data.csv")
 write_csv(watershed_rain_data, "watershed_app/data/rain_data/watershed_rain_data.csv")
