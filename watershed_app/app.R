@@ -166,6 +166,9 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                           value=c(min(watershed_data$Date),
                                                   max(watershed_data$Date))
                               ), #sliderInput
+                              ),
+                       column(6,
+                              plotOutput("precip_scatter")
                               )
                        
 ) #tabPanel
@@ -511,8 +514,6 @@ server <- function(input, output, session) {
       t() %>%
       as.data.frame()
     rain_data$Watershed <- rownames(rain_data)
-    rain_data <- mutate(rain_data, Watershed=paste0(Watershed, " Creek"))
-    rain_data[7,2] <- "North Bear Creek"
     
     by_watershed <- watershed_data %>%
       group_by(Watershed) %>%
@@ -555,6 +556,15 @@ server <- function(input, output, session) {
     map
     
   }) #renderLeaflet
+  
+  output$precip_scatter <- renderPlot({
+    
+    data.frame(Date = watershed_rain_data$Date, Estimate = watershed_rain_data[["Bear Creek"]]) %>%
+      ggplot(aes(x=Date, y=Estimate))+
+      geom_point()+
+      theme_minimal()
+    
+  }) #renderPlot
   
   
   
