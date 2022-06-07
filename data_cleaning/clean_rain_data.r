@@ -18,3 +18,4 @@ watershed_rain_data <- data.frame(Date=bear_rain$Date,
                                   Otter=otter_rain$Estimate)
 
 write_csv(watershed_rain_data, "Data/rain_data/watershed_rain_data.csv")
+write_csv(watershed_rain_data, "watershed_app/data/rain_data/watershed_rain_data.csv")
