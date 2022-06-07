@@ -562,9 +562,9 @@ server <- function(input, output, session) {
   output$data_table <- renderDataTable(new_data())
   
   # ensure app closes properly
-  session$onSessionEnded(function() {
-    stopApp()
-  })
+  # session$onSessionEnded(function() {
+  #   stopApp()
+  # })
   
 } #server
 
