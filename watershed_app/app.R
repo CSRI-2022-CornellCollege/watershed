@@ -279,7 +279,7 @@ server <- function(input, output, session) {
   
   
   #
-  # Map Page - Plots Tab
+  # Map Page - Interactive Map
   #
   
   # Header of plots page
@@ -367,6 +367,13 @@ server <- function(input, output, session) {
     
     
   }) #renderLeaflet
+  
+  
+  
+  
+  #
+  # Map Page - Plots Tab
+  #
   
   # Plot comparing years for a given variable
   output$map_years_plot <- renderPlot({
