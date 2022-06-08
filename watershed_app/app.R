@@ -492,8 +492,8 @@ server <- function(input, output, session) {
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=eval(as.name(input$map_var))))+
       geom_histogram()+
-      xlab("Count")+
-      ylab(input$map_var)+
+      ylab("Count")+
+      xlab(input$map_var)+
       ggtitle(paste0("Distribution of ", input$map_var))+
       theme_minimal()
     
