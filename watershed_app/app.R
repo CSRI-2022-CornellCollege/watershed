@@ -100,8 +100,15 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                        # This page is for displaying graphs of a certain watershed when a user clicks on it in the interactive map       
                                        tabPanel(div(class="navTab", "Plots"), value="plots_tab",
                                                 fluidPage(
-                                                  h2(strong(textOutput("map_title"), style="text-align: center;")),
-                                                  br(),
+                                                  column(6,
+                                                         h2(strong(textOutput("map_title"), style="text-align: center;")),
+                                                         br(),
+                                                         # Scatterplot
+                                                         plotOutput("map_change_plot", height=250),
+                                                         # Histogram
+                                                         plotOutput("map_dist_plot", height=250)
+                                                  ), #column
+                                                  
                                                   column(6,
                                                          # Choose years
                                                          pickerInput("map_years_year",
@@ -114,25 +121,14 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          
                                                          # Years plot
                                                          plotOutput("map_years_plot", height=250),
-                                                         br(),
+                                                         selectInput("add_watershed_spider",
+                                                                     label="Compare With Watershed(s)",
+                                                                     choices=c(watersheds,"None"),
+                                                                     selected="None"
+                                                                     ), #selectInput
                                                          # Spider plot
-                                                         plotOutput("map_spider_plot")
+                                                         plotOutput("map_spider_plot", height=350)
                                                          ), #column
-                                                  column(6,
-                                                         # Choose date range
-                                                         sliderInput("map_change_date",
-                                                                     label="Date Range",
-                                                                     min=min(watershed_data$Date),
-                                                                     max=max(watershed_data$Date),
-                                                                     value=c(min(watershed_data$Date),
-                                                                             max(watershed_data$Date))
-                                                         ), #sliderInput
-                                                         # Scatterplot
-                                                         plotOutput("map_change_plot", height=250),
-                                                         # Histogram
-                                                         plotOutput("map_dist_plot", height=250)
-                                                         ) #column
-                                                  
                                                   
                                                 ) #fluidPage
                                                 ) #tabPanel
@@ -276,6 +272,37 @@ server <- function(input, output, session) {
   }) #renderPlot
   
   
+  #Rendering spider plot for overview page
+  par(mar = c(4, 4, 0.1, 0.1))
+  output$overview_spider_plot <- renderPlot({
+    
+    max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
+    min_values <- rep(min(watershed_data[[input$map_var]], na.rm=T), 8)
+    
+    
+    data_temp <- watershed_data %>%
+      filter(Date > input$map_date[1] & Date < input$map_date[2]) %>%
+      group_by(Watershed) %>%
+      summarize(mean=mean(eval(as.name(input$map_var)), na.rm=T))
+    
+    data <- as.data.frame(t(data_temp[,-1]))
+    colnames(data) <- data_temp$Watershed
+    
+    data <- rbind(min_values, data)
+    data <- rbind(max_values, data)
+    
+    radarchart(data,
+               cglty = 1,       # Grid line type
+               cglcol = "gray", # Grid line color
+               cglwd = 1,       # Line width of the grid
+               pcol = "blue",        # Color of the line
+               plwd = 2,        # Width of the line
+               plty = 1,
+               title=paste0(input$map_var, " by watershed"))
+    
+  }) #renderPlot
+  
+  
   
   
   #
@@ -400,6 +427,15 @@ server <- function(input, output, session) {
   
   # Spider Plots
   
+  #Updating input
+  observeEvent(input$map_shape_click, {
+    
+    updateSelectInput(session=session, "add_watershed_spider", label = NULL,
+                      choices = c(watersheds[watersheds!=input$map_shape_click$id], "None"),
+                      selected = "None")
+    
+  }) #observeEvent
+  
   #Setting min and max ranges for spider plot
   max_TSS <- quantile(watershed_data$TSS, p=0.9, na.rm=T)
   max_DRP <- quantile(watershed_data$DRP, p=0.9, na.rm=T)
@@ -414,9 +450,6 @@ server <- function(input, output, session) {
     dplyr::select(10:15) %>%
     summarize_all(min, na.rm=T)
   
-  #Safe levels for different variables to be displayed on the spider plot
-  safe_levels <- as.data.frame(t(c(max_TSS, 0.1, 4, 10, max_SO4, max_E_coli)))
-  colnames(safe_levels) <- c("TSS", "DRP", "Cl", "NO3_N", "SO4", "E_coli")
   
   #Rendering spider plot for watershed page
   output$map_spider_plot <- renderPlot({
@@ -427,52 +460,33 @@ server <- function(input, output, session) {
       dplyr::select(10:15) %>%
       summarize_all(mean, na.rm=T)
     
+    colors <- "blue"
     data <- rbind(min_values, data)
     data <- rbind(max_values, data)
-    data <- rbind(data, safe_levels)
+    sp_legend <- list("topleft", legend=c(input$map_shape_click$id), col=c("Blue"), bty = "n", pch=20)
+    
+    if (input$add_watershed_spider %in% watersheds){
+      to_compare <- watershed_data %>%
+        filter(Watershed==input$add_watershed_spider) %>%
+        filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
+        dplyr::select(10:15) %>%
+        summarize_all(mean, na.rm=T)
+      
+      colors <- c("blue", "red")
+      data <- rbind(data, to_compare)
+      sp_legend <- list("topleft", legend=c(input$map_shape_click$id, input$add_watershed_spider), col=c("Blue", "Red"), bty = "n", pch=20)
+    }
     
     radarchart(data,
                cglty = 1,       # Grid line type
                cglcol = "gray", # Grid line color
                cglwd = 1,       # Line width of the grid
-               pcol = c("blue", "red"),        # Color of the line
+               pcol = colors,        # Color of the line
                plwd = 2,        # Width of the line
                plty = 1,
-               title=paste0("Chemical concentrations in the", input$map_shape_click$id, " Watershed"))
-    legend("topleft", legend=c("Actual Values", "Safe Levels"), col=c("Blue", "Red"), bty = "n", pch=20)
+               title=paste0("Chemical concentrations in the ", input$map_shape_click$id, " Watershed"))
+    do.call("legend", sp_legend)
     
-  }) #renderPlot
-  
-  
-  #Rendering spider plot for overview page
-  par(mar = c(4, 4, 0.1, 0.1))
-  output$overview_spider_plot <- renderPlot({
-    
-    max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
-    min_values <- rep(min(watershed_data[[input$map_var]], na.rm=T), 8)
-    
-    
-    data_temp <- watershed_data %>%
-      group_by(Watershed) %>%
-      summarize(mean=mean(eval(as.name(input$map_var)), na.rm=T))
-
-    data <- as.data.frame(t(data_temp[,-1]))
-    colnames(data) <- data_temp$Watershed
-    
-    data <- rbind(min_values, data)
-    data <- rbind(max_values, data)
-    data <- rbind(data, rep(safe_levels[[input$map_var]], 8))
-
-    radarchart(data,
-               cglty = 1,       # Grid line type
-               cglcol = "gray", # Grid line color
-               cglwd = 1,       # Line width of the grid
-               pcol = c("blue", "red"),        # Color of the line
-               plwd = 2,        # Width of the line
-               plty = 1,
-               title=paste0(input$map_var, " by watershed"))
-    legend("topleft", legend=c("Actual Values", "Safe Levels"), col=c("Blue", "Red"), bty = "n", pch=20)
-
   }) #renderPlot
   
   
@@ -480,7 +494,7 @@ server <- function(input, output, session) {
   output$map_change_plot <- renderPlot({
     
     watershed_data %>%
-      filter(Date < input$map_change_date[2] & Date > input$map_change_date[1]) %>%
+      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
       geom_point()+
@@ -495,7 +509,7 @@ server <- function(input, output, session) {
   output$map_dist_plot <- renderPlot({
     
     watershed_data %>%
-      filter(Date < input$map_change_date[2] & Date > input$map_change_date[1]) %>%
+      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=eval(as.name(input$map_var))))+
       geom_histogram()+
