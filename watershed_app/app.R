@@ -100,15 +100,8 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                        # This page is for displaying graphs of a certain watershed when a user clicks on it in the interactive map       
                                        tabPanel(div(class="navTab", "Plots"), value="plots_tab",
                                                 fluidPage(
-                                                  column(6,
-                                                         h2(strong(textOutput("map_title"), style="text-align: center;")),
-                                                         br(),
-                                                         # Scatterplot
-                                                         plotOutput("map_change_plot", height=250),
-                                                         # Histogram
-                                                         plotOutput("map_dist_plot", height=250)
-                                                  ), #column
-                                                  
+                                                  h2(strong(textOutput("map_title"), style="text-align: center;")),
+                                                  br(),
                                                   column(6,
                                                          # Choose years
                                                          pickerInput("map_years_year",
@@ -118,16 +111,24 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      multiple=T,
                                                                      options = list(`actions-box` = TRUE)
                                                          ), #pickerInput
-                                                         
                                                          # Years plot
-                                                         plotOutput("map_years_plot", height=250),
+                                                         plotOutput("map_years_plot", height=350),
+                                                         br(),
+                                                         # Scatterplot
+                                                         plotOutput("map_change_plot", height=250),
+                                                  ), #column
+                                                  
+                                                  column(6,
                                                          selectInput("add_watershed_spider",
                                                                      label="Compare With Watershed(s)",
                                                                      choices=c(watersheds,"None"),
                                                                      selected="None"
                                                                      ), #selectInput
                                                          # Spider plot
-                                                         plotOutput("map_spider_plot", height=350)
+                                                         plotOutput("map_spider_plot", height=350),
+                                                         br(),
+                                                         # Histogram
+                                                         plotOutput("map_dist_plot", height=250)
                                                          ), #column
                                                   
                                                 ) #fluidPage
