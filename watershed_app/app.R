@@ -8,10 +8,11 @@ library(broom)
 library(jcolors)
 library(fmsb)
 library(rgdal)
+library(lubridate)
 
 watershed_data <- read_csv("data/combined_data_clean2.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
-watershed_rain_data <- read_csv("data/rain_data/watershed_rain_data.csv")
+watershed_rain_data <- read_csv("data/watershed_rain_data.csv")
 watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("data/watershed_geo/sites.shp")
@@ -22,7 +23,7 @@ years <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010
 watersheds <- c("Indian Creek", "Bear Creek", "Blue Creek", "Morgan Creek", "Mud Creek",
                 "North Bear Creek", "Otter Creek", "Lime Creek")
 
-options(shiny.sanitize.errors = FALSE)
+#options(shiny.sanitize.errors = FALSE)
 
 # Pages
 
@@ -154,13 +155,14 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                               helpText("Zoom in to see sampling sites. Select a watershed to see more information."),
                               fluidRow(
                                 column(6,
-                                       sliderInput("precip_date",
-                                                   label="Date Range",
-                                                   min=min(watershed_data$Date),
-                                                   max=max(watershed_data$Date),
-                                                   value=c(min(watershed_data$Date),
-                                                           max(watershed_data$Date))
-                                       ), #sliderInput
+                                       # Choose years
+                                       pickerInput("precip_year",
+                                                   label="Select Year(s)",
+                                                   choices=years,
+                                                   selected=c("2021", "2020", "2019"),
+                                                   multiple=T,
+                                                   options = list(`actions-box` = TRUE)
+                                       ) #pickerInput
                                        ), #column
                                 column(6,
                                        selectInput("precip_var",
@@ -171,9 +173,8 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                        ) #column
                               ) #fluidRow
                               ),
-                       column(6,
-                              plotOutput("precip_plot"),
-                              plotOutput("precip_var_plot"),
+                       column(6, style = "overflow-y:scroll;",
+                              plotOutput("precip_plot")
                               )
                        
 ) #tabPanel
@@ -531,7 +532,7 @@ server <- function(input, output, session) {
   output$precip_map<- renderLeaflet({
     
     rain_data <- watershed_rain_data %>%
-      filter(Date > input$precip_date[1] & Date < input$precip_date[2])
+      filter(substr(Date, 1, 4) %in% input$precip_year)
     
     rain_data <- rain_data[,-1] %>%
       summarize_all(mean, na.rm=T) %>%
@@ -539,17 +540,20 @@ server <- function(input, output, session) {
       as.data.frame()
     rain_data$Watershed <- rownames(rain_data)
     
-    by_watershed <- watershed_data %>%
+    p_by_watershed <- watershed_data %>%
       group_by(Watershed) %>%
       summarize(value=mean(NO3_N, na.rm=T))
     
     merged_watershed_shp$value <- rain_data$V1[match(merged_watershed_shp$Watershed, rain_data$Watershed)]
     
+    # One polygon for watershed currently selected to be drawn over rest of map, shows users current selection
+    p_selected_watershed <- subset(merged_watershed_shp, merged_watershed_shp$Watershed==input$precip_map_shape_click$id)
+    
     # Color palette
     palette <- colorNumeric("Blues", merged_watershed_shp$value)
     
     # Leaflet map
-    map <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
+    pmap <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
                                             zoomDelta = 0.25)) %>%
       # View and bounds
       setView(center_long, center_lat, 10) %>%
@@ -570,6 +574,9 @@ server <- function(input, output, session) {
                   label=paste0(merged_watershed_shp$Watershed, " Watershed"),
                   layerId=~Watershed) %>%
       
+      # Adding polygon for watershed that the user has currently selected
+      addPolygons(data=p_selected_watershed, color="white", opacity=1, fillOpacity=0, weight=5,highlightOptions = highlightOptions(color = "white", weight = 5,
+                                                                                                                                 bringToFront = TRUE)) %>%
       # Add legend
       addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title="Precipitation (in)") %>%
       
@@ -577,42 +584,47 @@ server <- function(input, output, session) {
       addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
       groupOptions("markers", zoomLevels=seq(10, 20, 0.25))
     
-    map
+    pmap
     
   }) #renderLeaflet
   
   
-  
-  # Plot of variable to compare with precipitation trends
-  output$precip_var_plot <- renderPlot({
-    
-    watershed_data %>%
-      filter(Date < input$precip_date[2] & Date > input$precip_date[1]) %>%
-      mutate(Date=as.Date(paste0(format(Date, "%Y-%m"), "-01"))) %>%
-      group_by(Date) %>%
-      summarize(avg = mean(eval(as.name(input$precip_var)), na.rm=T)) %>%
-      ggplot(aes(x=Date, y=avg))+
-      geom_line(color="red")+
-      geom_point(color="red")+
-      ylab(input$precip_var)+
-      theme_minimal()
-    
-  }) #renderPlot
-  
-  
-  
-  # Line graph of precipitation
   output$precip_plot <- renderPlot({
     
-    data.frame(Date = watershed_rain_data$Date, Estimate = watershed_rain_data[["Bear Creek"]]) %>%
-      filter(Date < input$precip_date[2] & Date > input$precip_date[1]) %>%
-      mutate(Date=as.Date(paste0(format(Date, "%Y-%m"), "-01"))) %>%
+    if (is.null(input$precip_map_shape_click$id)) {
+      wdata <- watershed_data %>%
+        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
+        dplyr::select(Date, input$precip_var)
+      rdata <- rainfall_data %>%
+        filter(substr(Date, 1, 4) %in% input$precip_year)
+    } else {
+      wdata <- watershed_data %>%
+        filter(Watershed==input$precip_map_shape_click$id) %>%
+        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
+        dplyr::select(Date, input$precip_var)
+      rdata <- watershed_rain_data %>%
+        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
+        dplyr::select(Date, input$precip_map_shape_click$id)
+    }
+    
+    data <- left_join(rdata, wdata, by="Date") %>%
+      mutate(Year = substr(Date, 1, 4))
+    year(data$Date) <- 0000
+    names(data) <- c("Date", "Rain", "Value", "Year")
+    data$Rain <- (data$Rain-min(data$Rain))/(max(data$Rain)-min(data$Rain))
+    data$Value <- (data$Value-min(data$Value, na.rm=T))/(max(data$Value, na.rm=T)-min(data$Value, na.rm=T))
+    
+    value_str <- input$precip_var
+    colors <- c("Variable"="#339933", "Precipitation"="blue")
+    
+    data %>%
+      filter(Date < "0-08-15" & Date > "0-04-10") %>%
       group_by(Date) %>%
-      summarize(avg = mean(Estimate)) %>%
-      ggplot(aes(x=Date, y=avg))+
-      geom_line(color="blue")+
-      geom_point(color="blue")+
-      ylab("Precipitation (in)")+
+      summarize_at(c("Rain", "Value"), mean, na.rm=T) %>%
+      ggplot()+
+      geom_col(aes(x=Date, y=Value, fill="Variable"))+
+      geom_col(aes(x=Date, y=Rain, fill="Precipitation"), alpha=0.7)+
+      scale_fill_manual(values=colors, name="")+
       theme_minimal()
     
   }) #renderPlot
