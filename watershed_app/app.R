@@ -622,8 +622,8 @@ server <- function(input, output, session) {
       group_by(Date) %>%
       summarize_at(c("Rain", "Value"), mean, na.rm=T) %>%
       ggplot()+
-      geom_col(aes(x=Date, y=Value, fill="Variable"))+
-      geom_col(aes(x=Date, y=Rain, fill="Precipitation"), alpha=0.7)+
+      geom_col(aes(x=Date, y=Value, fill="Variable"), width=1)+
+      geom_col(aes(x=Date, y=Rain, fill="Precipitation"), alpha=0.7, width=1)+
       scale_fill_manual(values=colors, name="")+
       theme_minimal()
     
