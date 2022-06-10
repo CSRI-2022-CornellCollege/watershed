@@ -1,0 +1,163 @@
+---
+title: "Watershed Project"
+subtitle: ""
+author: "Brian Cochran"
+institute: "Cornell College"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    lib_dir: libs
+    nature:
+      ratio: "16:9"
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r load-packages, include = FALSE}
+# Add any additional packages you need to this chunk
+library(tidyverse)
+library(knitr)
+library(xaringanthemer)
+library(leaflet)
+library(raster)
+library(broom)
+library(jcolors)
+```
+
+```{r setup, include=FALSE}
+# For better figure resolution
+knitr::opts_chunk$set(fig.retina = 3, dpi = 300, fig.width = 6, fig.asp = 0.618, out.width = "80%")
+```
+
+```{r load-data, include=FALSE}
+watershed_data <- read_csv("../Data/combined_data_clean2.csv")
+rainfall_data <- read_csv("../Data/CR_airport_rainfall.csv")
+watershed_rain_data <- read_csv("../Data/watershed_rain_data.csv")
+watershed_shp <- shapefile("../Data/watershed_geo/watersheds.shp")
+merged_watershed_shp <- shapefile("../Data/watershed_geo/merged_watersheds.shp")
+sites <- shapefile("../Data/watershed_geo/sites.shp")
+```
+
+
+
+# About the Data
+
+- We are working with Coe College
+<br></br>
+- They data on Iowa watersheds
+<br></br>
+- This data has been collected each summer since 2002
+<br></br>
+
+``` {r data-preview, echo=FALSE}
+knitr::kable(tail(watershed_data), format="html")
+```
+---
+
+
+
+class: center, inverse
+``` {r map, fig.height=3.5, fig.width=3.5, fig.align = 'center', echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
+# Getting max, min, and center long and lat for use in setting bounds of interactive map
+temp_data <- tidy(merged_watershed_shp)
+min_lat <- min(temp_data$lat)
+max_lat <- max(temp_data$lat)
+min_long <- min(temp_data$long)
+max_long <- max(temp_data$long)
+center_lat <- (min_lat+max_lat)/2
+center_long <- (min_long+max_long)/2
+  
+# Icon for sampling site markers
+siteIcon <- makeIcon(
+  iconUrl="https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_2/v1620195943/brentwoodk12nyus/wivrch9gpckn4nvyconr/experiment-1295041_1280.png",
+  iconWidth = 25, iconHeight = 24
+)
+
+# Color palette
+palette <- colorFactor("Set1", merged_watershed_shp$Watershed)
+    
+# Leaflet map
+leaflet(width="100%", options = leafletOptions(zoomSnap = 0.25, 
+                                                         zoomDelta = 0.25)) %>%
+  # View and bounds
+  setView(center_long, center_lat, 9.5) %>%
+  setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
+      
+  # Using ESRI NatGeoWorldMap for background
+  addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
+      
+   # Adding lines for subwatersheds
+  addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=0.5, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
+      
+  # Adding polgyons for watersheds
+  addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 1,
+              opacity = 1.0, fillOpacity = 0.5,
+              fillColor = ~palette(Watershed),
+              highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                      bringToFront = TRUE),
+              label=paste0(merged_watershed_shp$Watershed, " Watershed"),
+              layerId=~Watershed) %>%
+      
+  # Add markers and set visibility according to zoom level
+  addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
+  groupOptions("markers", zoomLevels=seq(9.5, 20, 0.25))
+```
+---
+
+
+
+# Project Goals
+<br></br>
+- Create an interactive online dashboard to display this data
+<br></br>
+- Good visualizations and descriptions
+<br></br>
+- For a non-science/statistics audience
+---
+
+
+
+# Water Quality Index
+
+- Five factors:
+<br></br>
+  - Dissolved Oxygen
+  <br></br>
+  - E. coli
+  <br></br>
+  - Total Nitrogen
+  <br></br>
+  - Total Phosphorus
+  <br></br>
+  - Turbidity
+  <br></br>
+  <br></br>
+  <br></br>
+
+This is based on a WQI proposed by Chris Jones, an IIHR Research Engineer
+---
+
+
+
+class: center, inverse, middle
+# Dashboard
+<a href="https://bcochran23.shinyapps.io/watershed_app/?_ga=2.37620064.174844941.1654812369-310770441.1654553990">Dashboard Link</a>
+---
+
+
+
+# Next Steps
+<br></br>
+- Continue creating visualizations
+<br></br>
+- Predictive models
+<br></br>
+- Water quality page
+---
+
+
+
+class: inverse, center, middle
+# Questions?
