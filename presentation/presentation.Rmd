@@ -24,6 +24,7 @@ library(leaflet)
 library(raster)
 library(broom)
 library(jcolors)
+library(kableExtra)
 ```
 
 ```{r setup, include=FALSE}
@@ -46,13 +47,14 @@ sites <- shapefile("../Data/watershed_geo/sites.shp")
 
 - We are working with Coe College
 <br></br>
-- They data on Iowa watersheds
+- They are collecting data on Iowa watersheds
 <br></br>
 - This data has been collected each summer since 2002
 <br></br>
 
 ``` {r data-preview, echo=FALSE}
-knitr::kable(tail(watershed_data), format="html")
+knitr::kable(tail(watershed_data), format="html") %>%
+  kable_styling(font_size = 20)
 ```
 ---
 
@@ -80,7 +82,7 @@ palette <- colorFactor("Set1", merged_watershed_shp$Watershed)
     
 # Leaflet map
 leaflet(width="100%", options = leafletOptions(zoomSnap = 0.25, 
-                                                         zoomDelta = 0.25)) %>%
+                                                         zoomDelta = 0.5)) %>%
   # View and bounds
   setView(center_long, center_lat, 9.5) %>%
   setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
