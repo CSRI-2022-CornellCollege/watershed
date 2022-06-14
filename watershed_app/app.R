@@ -174,6 +174,12 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                               ) #fluidRow
                               ),
                        column(6, style = "overflow-y:scroll;",
+                              radioButtons("precip_interval",
+                                           label="Select Time Interval",
+                                           choiceNames=c("Days", "Weeks"),
+                                           choiceValues=c("Date", "Week"),
+                                           selected="Week"
+                                           ),
                               plotOutput("precip_plot")
                               )
                        
@@ -589,6 +595,7 @@ server <- function(input, output, session) {
   }) #renderLeaflet
   
   
+  
   output$precip_plot <- renderPlot({
     
     if (is.null(input$precip_map_shape_click$id)) {
@@ -608,24 +615,43 @@ server <- function(input, output, session) {
     }
     
     data <- left_join(rdata, wdata, by="Date") %>%
-      mutate(Year = substr(Date, 1, 4))
+      mutate(Year = substr(Date, 1, 4)) %>%
+      mutate(Week=week(Date))
     year(data$Date) <- 0000
-    names(data) <- c("Date", "Rain", "Value", "Year")
+    names(data) <- c("Date", "Rain", "Value", "Year", "Week")
     data$Rain <- (data$Rain-min(data$Rain))/(max(data$Rain)-min(data$Rain))
     data$Value <- (data$Value-min(data$Value, na.rm=T))/(max(data$Value, na.rm=T)-min(data$Value, na.rm=T))
+    data <- data %>%
+      pivot_longer(cols=c("Rain", "Value"),
+                   names_to="Type",
+                   values_to="Value") %>%
+      filter(Date < "0-08-15" & Date > "0-04-10")
+    data$Type <- factor(data$Type, levels=c("Value", "Rain"))
     
-    value_str <- input$precip_var
-    colors <- c("Variable"="#339933", "Precipitation"="blue")
+    graph <- switch(input$precip_interval,
+                    
+      "Week" = data %>%
+        group_by(Type, Week) %>%
+        summarize_at(c("Value"), mean, na.rm=T) %>%
+        ggplot(aes(x=Week, y=Value, fill=Type))+
+        geom_area(position="identity", alpha=0.7)+
+        xlab("Week")+
+        ylab("")+
+        scale_fill_manual(values=c("#339933", "#3366ff"))+
+        theme_minimal(),
+      
+      "Date" = data %>%
+        group_by(Type, Date) %>%
+        summarize_at(c("Value"), mean, na.rm=T) %>%
+        ggplot(aes(x=Date, y=Value, fill=Type))+
+        geom_col(alpha=0.7)+
+        xlab("Date")+
+        ylab("")+
+        scale_fill_manual(values=c("#339933", "#3366ff"))+
+        theme_minimal()
+    )
     
-    data %>%
-      filter(Date < "0-08-15" & Date > "0-04-10") %>%
-      group_by(Date) %>%
-      summarize_at(c("Rain", "Value"), mean, na.rm=T) %>%
-      ggplot()+
-      geom_col(aes(x=Date, y=Value, fill="Variable"), width=1)+
-      geom_col(aes(x=Date, y=Rain, fill="Precipitation"), alpha=0.7, width=1)+
-      scale_fill_manual(values=colors, name="")+
-      theme_minimal()
+    graph
     
   }) #renderPlot
   
