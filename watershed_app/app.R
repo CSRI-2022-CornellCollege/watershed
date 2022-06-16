@@ -87,7 +87,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          ), #selectInput
                                                          
                                                          # Overview line graph
-                                                         plotOutput("overview_watersheds", height=250),
+                                                         girafeOutput("overview_watersheds", height=250),
                                                          br(),
                                                          # Overview spider plot
                                                          plotOutput("overview_spider_plot")
@@ -116,7 +116,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          girafeOutput("map_years_plot", height=350),
                                                          br(),
                                                          # Scatterplot
-                                                         plotOutput("map_change_plot", height=250),
+                                                         girafeOutput("map_change_plot", height=250),
                                                   ), #column
                                                   
                                                   column(6,
@@ -129,7 +129,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          plotOutput("map_spider_plot", height=350),
                                                          br(),
                                                          # Histogram
-                                                         plotOutput("map_dist_plot", height=250)
+                                                         girafeOutput("map_dist_plot", height=250)
                                                          ), #column
                                                   
                                                 ) #fluidPage
@@ -264,18 +264,20 @@ server <- function(input, output, session) {
   # Map Page- Overview Tab
   #
   
-  output$overview_watersheds <- renderPlot({
+  output$overview_watersheds <- renderGirafe({
     
-    watershed_data %>%
+    graph <- watershed_data %>%
       filter(substr(Date, 1, 4) == input$overview_year) %>%
       group_by(Watershed, Date) %>%
       summarize(value = mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=Date, y=value, color=Watershed))+
-      geom_line()+
-      geom_point(aes(tooltip=value, data_id=value))+
+      geom_line(size=1)+
+      geom_point_interactive(aes(tooltip=value, data_id=value), size=2)+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
-      theme_minimal()
+      theme_minimal(base_size = 20)
+    
+    girafe(ggobj=graph, width_svg=11, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
     
   }) #renderPlot
   
@@ -420,13 +422,13 @@ server <- function(input, output, session) {
       group_by(Watershed, year, day) %>%
       summarize(avg=mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=day, y=avg, color=year))+
-      geom_line()+
-      geom_point_interactive()+
+      geom_line(size=2)+
+      geom_point_interactive(aes(tooltip=avg, data_id=avg), size=4)+
       xlab("Date")+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
       labs(color="Year")+
-      theme_minimal()
+      theme_minimal(base_size = 25)
     
     girafe(ggobj=graph, width_svg=12, height_svg=7)
       
@@ -434,8 +436,8 @@ server <- function(input, output, session) {
   }) #renderPlot
   
   
-  # Spider Plots
   
+  # Spider Plot
   #Updating input
   observeEvent(input$map_shape_click, {
     
@@ -500,32 +502,36 @@ server <- function(input, output, session) {
   
   
   # Plot showing observations of variable over a given time
-  output$map_change_plot <- renderPlot({
+  output$map_change_plot <- renderGirafe({
     
-    watershed_data %>%
+    graph <- watershed_data %>%
       filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
-      geom_point()+
+      geom_point_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), size=4)+
       xlab("Date")+
       ylab(input$map_var)+
       ggtitle(paste0("Observed ", input$map_var))+
-      theme_minimal()
+      theme_minimal(base_size = 20)
+    
+    girafe(ggobj = graph, width_svg=11, height_svg=5)
 
   }) #renderPlot
   
   # Plot showing distribution of variable in a given time
-  output$map_dist_plot <- renderPlot({
+  output$map_dist_plot <- renderGirafe({
     
-    watershed_data %>%
+    graph <- watershed_data %>%
       filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=eval(as.name(input$map_var))))+
-      geom_histogram()+
+      geom_histogram_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), fill="#267326")+
       ylab("Count")+
       xlab(input$map_var)+
       ggtitle(paste0("Distribution of ", input$map_var))+
-      theme_minimal()
+      theme_minimal(base_size = 20)
+    
+    girafe(ggobj = graph, width_svg=11, height_svg=5)
     
   }) #renderPlot
   
