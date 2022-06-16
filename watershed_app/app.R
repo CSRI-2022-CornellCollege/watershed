@@ -1,7 +1,6 @@
 library(shiny)
 library(shinyWidgets)
 library(tidyverse)
-library(ggpubr)
 library(raster)
 library(leaflet)
 library(broom)
@@ -9,6 +8,7 @@ library(jcolors)
 library(fmsb)
 library(rgdal)
 library(lubridate)
+library(ggiraph)
 
 watershed_data <- read_csv("data/combined_data_clean2.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -113,7 +113,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      options = list(`actions-box` = TRUE)
                                                          ), #pickerInput
                                                          # Years plot
-                                                         plotOutput("map_years_plot", height=350),
+                                                         girafeOutput("map_years_plot", height=350),
                                                          br(),
                                                          # Scatterplot
                                                          plotOutput("map_change_plot", height=250),
@@ -272,7 +272,7 @@ server <- function(input, output, session) {
       summarize(value = mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=Date, y=value, color=Watershed))+
       geom_line()+
-      geom_point()+
+      geom_point(aes(tooltip=value, data_id=value))+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
       theme_minimal()
@@ -281,7 +281,6 @@ server <- function(input, output, session) {
   
   
   #Rendering spider plot for overview page
-  par(mar = c(4, 4, 0.1, 0.1))
   output$overview_spider_plot <- renderPlot({
     
     max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
@@ -411,9 +410,9 @@ server <- function(input, output, session) {
   #
   
   # Plot comparing years for a given variable
-  output$map_years_plot <- renderPlot({
+  output$map_years_plot <- renderGirafe({
     
-    watershed_data %>%
+    graph <- watershed_data %>%
       mutate(year=substr(Date, 1, 4)) %>%
       mutate(day=as.Date(paste0("0000-", substr(Date, 6, 10)))) %>%
       filter(year %in% input$map_years_year) %>%
@@ -422,12 +421,14 @@ server <- function(input, output, session) {
       summarize(avg=mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=day, y=avg, color=year))+
       geom_line()+
-      geom_point()+
+      geom_point_interactive()+
       xlab("Date")+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
       labs(color="Year")+
       theme_minimal()
+    
+    girafe(ggobj=graph, width_svg=12, height_svg=7)
       
     
   }) #renderPlot
