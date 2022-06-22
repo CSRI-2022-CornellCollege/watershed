@@ -10,7 +10,7 @@ library(rgdal)
 library(lubridate)
 library(ggiraph)
 
-watershed_data <- read_csv("data/combined_data_clean2.csv")
+watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
 watershed_rain_data <- read_csv("data/watershed_rain_data.csv")
 watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
