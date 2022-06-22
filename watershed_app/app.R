@@ -9,6 +9,7 @@ library(fmsb)
 library(rgdal)
 library(lubridate)
 library(ggiraph)
+library(elementalist) # devtools::install_github("teunbrand/elementalist")
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -316,7 +317,8 @@ server <- function(input, output, session) {
       geom_point_interactive(aes(tooltip=value, data_id=value), size=2)+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj=graph, width_svg=11, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
     
@@ -469,7 +471,8 @@ server <- function(input, output, session) {
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
       labs(color="Year")+
-      theme_minimal(base_size = 25)
+      theme_minimal(base_size = 25) +
+      theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj=graph, width_svg=12, height_svg=7)
       
@@ -553,7 +556,8 @@ server <- function(input, output, session) {
       xlab("Date")+
       ylab(input$map_var)+
       ggtitle(paste0("Observed ", input$map_var))+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
 
@@ -570,7 +574,8 @@ server <- function(input, output, session) {
       ylab("Count")+
       xlab(input$map_var)+
       ggtitle(paste0("Distribution of ", input$map_var))+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
     
@@ -686,7 +691,8 @@ server <- function(input, output, session) {
         xlab("Week")+
         ylab("")+
         scale_fill_manual(values=c("#339933", "#3366ff"))+
-        theme_minimal(),
+        theme_minimal() +
+        theme(plot.background  = element_rect(color="#523178", size=4)),
       
       "Date" = data %>%
         group_by(Type, Date) %>%
@@ -696,7 +702,8 @@ server <- function(input, output, session) {
         xlab("Date")+
         ylab("")+
         scale_fill_manual(values=c("#339933", "#3366ff"))+
-        theme_minimal()
+        theme_minimal() +
+        theme(plot.background  = element_rect(color="#523178", size=4))
     )
     
     graph
@@ -713,14 +720,15 @@ server <- function(input, output, session) {
   output$DO_bar <- renderGirafe({
     graph <- watershed_data %>%
       group_by(Watershed) %>%
-      summarize_at(c("DO"), mean, na.rm=T) %>%
+      summarize_at(c("DO"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=DO))+
       geom_col_interactive(aes(tooltip=DO, data_id=DO), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=5, data_id=5), yintercept = 5, color="red", size=2)+
       geom_text(aes(4,5,label = "Threshold (Higher is Better)", vjust = -1), color="red", size=6)+
       ggtitle("Dissolved Oxygen Levels by Watershed")+
       xlab("")+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
   })
@@ -729,14 +737,15 @@ server <- function(input, output, session) {
   output$E_coli_bar <- renderGirafe({
     graph <- watershed_data %>%
       group_by(Watershed) %>%
-      summarize_at(c("E_coli"), mean, na.rm=T) %>%
+      summarize_at(c("E_coli"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=E_coli))+
       geom_col_interactive(aes(tooltip=E_coli, data_id=E_coli), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=235, data_id=235), yintercept = 235, color="red", size=2)+
       geom_text(aes(4,235,label = "Threshold (Lower is Better)", vjust = -1), color="red", size=6)+
       ggtitle("E. coli Levels by Watershed")+
       xlab("")+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
   })
@@ -745,14 +754,15 @@ server <- function(input, output, session) {
   output$NO3_N_bar <- renderGirafe({
     graph <- watershed_data %>%
       group_by(Watershed) %>%
-      summarize_at(c("NO3_N"), mean, na.rm=T) %>%
+      summarize_at(c("NO3_N"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=NO3_N))+
       geom_col_interactive(aes(tooltip=NO3_N, data_id=NO3_N), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=3.5, data_id=3.5), yintercept = 3.5, color="red", size=2)+
       geom_text(aes(4,3.5,label = "Threshold (Lower is Better)", vjust = -1), color="red", size=6)+
       ggtitle("Nitrate Levels by Watershed")+
       xlab("")+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
   })
@@ -761,14 +771,15 @@ server <- function(input, output, session) {
   output$DRP_bar <- renderGirafe({
     graph <- watershed_data %>%
       group_by(Watershed) %>%
-      summarize_at(c("DRP"), mean, na.rm=T) %>%
+      summarize_at(c("DRP"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=DRP))+
       geom_col_interactive(aes(tooltip=DRP, data_id=DRP), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=.18, data_id=.18), yintercept = .18, color="red", size=2)+
       geom_text(aes(4,.18,label = "Threshold (Lower is Better)", vjust = -1), color="red", size=6)+
       ggtitle("Phosphorus Levels by Watershed")+
       xlab("")+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
   })
@@ -777,14 +788,15 @@ server <- function(input, output, session) {
   output$Turb_bar <- renderGirafe({
     graph <- watershed_data %>%
       group_by(Watershed) %>%
-      summarize_at(c("Turb"), mean, na.rm=T) %>%
+      summarize_at(c("Turb"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=Turb))+
       geom_col_interactive(aes(tooltip=Turb, data_id=Turb), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=25, data_id=25), yintercept = 25, color="red", size=2)+
       geom_text(aes(4,25,label = "Threshold (Lower is Better)", vjust = -1), color="red", size=6)+
       ggtitle("Turbidity by Watershed")+
       xlab("")+
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
   })
