@@ -10,5 +10,11 @@ data <- left_join(watershed_data, temp, by=c("Site", "Date"), suffix=c("", ".y")
   mutate(Turb=ifelse(is.na(Turb), Turb.y, Turb)) %>%
   dplyr::select(1:15)
 
+data$DO <- as.numeric(data$DO)
+data$Temp <- as.numeric(data$Temp)
+data$pH <- as.numeric(data$pH)
+data$Cond <- as.numeric(data$Cond)
+data$Turb <- as.numeric(data$Turb)
+
 write_csv(data, "Data/combined_data_clean3.csv")
 write_csv(data, "watershed_app/data/combined_data_clean3.csv")
