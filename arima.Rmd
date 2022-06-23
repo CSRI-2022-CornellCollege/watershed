@@ -38,7 +38,7 @@ rain <- rain$Rain
 
 ### Observed Data
 
-This plot shows NO3_N observations aggregated by week over the summer of 2021.
+This plot shows NO3_N observations aggregated by week over the summer of 2021 in the Bear Creek Watershed.
 
 ``` {r observed-data-plot}
 plot(data, xlim=c(1, 15), ylim=c(0, 7), type="l", xlab="Week", ylab="NO3_N")
@@ -59,10 +59,15 @@ lines(x=10:14, y=c(fitted(fit)[10], data[11:14]), col="blue")
 abline(v=10, lty=3)
 ```
 
+<br></br>
 
+### Precipitation
 
+This plot shows the precipitation data.
 
-
+``` {r precipitation}
+plot(rain[1:15], type="l", xlab="Week", ylab="Precipitation")
+```
 
 
 
