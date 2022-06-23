@@ -1,0 +1,69 @@
+---
+title: "ARIMA"
+author: "Brian Cochran"
+date: "6/23/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(lubridate)
+library(forecast)
+```
+
+``` {r load-data, include=FALSE}
+data <- read_csv("Data/combined_data_clean2.csv") %>%
+  mutate(Week=week(Date)) %>%
+  mutate(Year=year(Date)) %>%
+  filter(Year==2021) %>%
+  filter(Watershed=="Bear Creek") %>%
+  group_by(Week) %>%
+  summarize(NO3_N=mean(NO3_N))
+
+rain <- read_csv("Data/watershed_rain_data.csv") %>%
+  mutate(Week=week(Date)) %>%
+  mutate(Year=year(Date)) %>%
+  filter(Year==2021) %>%
+  group_by(Week) %>%
+  summarize(Rain=mean(`Bear Creek`)) %>%
+  filter(Week > 17)
+
+data <- data$NO3_N
+rain <- rain$Rain
+```
+
+<br></br>
+
+### Observed Data
+
+This plot shows NO3_N observations aggregated by week over the summer of 2021.
+
+``` {r observed-data-plot}
+plot(data, xlim=c(1, 15), ylim=c(0, 7), type="l", xlab="Week", ylab="NO3_N")
+```
+
+<br></br>
+
+### ARIMA Model
+
+This plot shows the fitted values in the first ten weeks. Then it shows the predicted NO3_N values and the observed NO3_N values in red and blue respectively. Clearly fitting a model for just one summer is not sufficient.
+
+``` {r arima-model}
+fit <- Arima(y=data[1:10], xreg=rain[1:10], order=c(1,1,0), seasonal=F)
+plot(fitted(fit), xlim=c(1, 15), ylim=c(0, 7), xlab="Week", ylab="NO3_N")
+pred <- c(fitted(fit)[10], predict(fit, n.ahead=4, newxreg=rain[11:14])$pred)
+lines(x=10:14, y=pred, col="red")
+lines(x=10:14, y=c(fitted(fit)[10], data[11:14]), col="blue")
+abline(v=10, lty=3)
+```
+
+
+
+
+
+
+
+
+
