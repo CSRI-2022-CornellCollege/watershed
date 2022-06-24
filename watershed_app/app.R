@@ -514,9 +514,10 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarise_at(-1, mean, na.rm=T) %>%
       filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
-      ggradar(plot.extent.x.sf=1.1, plot.extent.y.sf=1.5)+
+      ggradar(plot.extent.x.sf=1.1, plot.extent.y.sf=1.5, values.radar = "", group.line.width = 0.7, group.point.size = 3)+
       theme_minimal()+
-      theme(plot.background  = element_rect(color="#523178", size=4))+
+      theme(plot.background  = element_rect(color="#523178", size=4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            axis.text=element_blank(), axis.ticks=element_blank())+
       scale_colour_discrete("Watershed")
     
   }) #renderPlot
