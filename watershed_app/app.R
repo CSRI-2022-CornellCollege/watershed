@@ -496,7 +496,7 @@ server <- function(input, output, session) {
   
   
   #Rendering spider plot for watershed page
-  output$map_spider_plot <- renderPlot({
+  output$map_spider_plot <- renderPlot(bg="#BBBCBC", {
     
     watershed_data %>%
       dplyr::select(c(1, 5:15)) %>%
@@ -514,9 +514,10 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarise_at(-1, mean, na.rm=T) %>%
       filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
-      ggradar()+
+      ggradar(plot.extent.x.sf=1.1, plot.extent.y.sf=1.5)+
       theme_minimal()+
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=4))
+      theme(plot.background  = element_rect(color="#523178", size=4))+
+      scale_colour_discrete("Watershed")
     
   }) #renderPlot
   
