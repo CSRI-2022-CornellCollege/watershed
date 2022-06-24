@@ -23,6 +23,10 @@ body {
   color: #FFFFFF;
 }
 
+.rightAlign {
+  float:right;
+}
+
 
 
 .shiny-output-error {
