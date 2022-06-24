@@ -82,25 +82,29 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          h3(strong("About the Dashboard")),
                                                          br(),
                                                          p("Dr. Martin St. Clair, along with his students, has been collecting water samples from watersheds near Cedar Rapids, Iowa since 2002. These samples are tested for many different variables with an emphasis on different chemical concentrations in the water.", style="font-size: 20px;"),
-                                                         br(),
-                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. The graph on the right shows the change of a variable over the course of one year in all watersheds.", style="font-size: 20px;")
+                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. The graph on the right shows the change of a variable over the course of one year in all watersheds.", style="font-size: 20px;"),
+                                                         br()
                                                          ), #column
                                                   column(6,
+                                                         # Overview spider plot
+                                                         plotOutput("overview_spider_plot")
+                                                         ) #column
+                                                  
+                                                ), #fluidPage
+                                                fluidRow(
+                                                  column(10,
+                                                         # Overview line graph
+                                                         girafeOutput("overview_watersheds", height=290)
+                                                         ),
+                                                  column(2,
                                                          # Select year to display on graph
                                                          selectInput("overview_year",
                                                                      label="Select Year",
                                                                      choices=years,
                                                                      selected="2021",
                                                          ), #selectInput
-                                                         
-                                                         # Overview line graph
-                                                         girafeOutput("overview_watersheds", height=250),
-                                                         br(),
-                                                         # Overview spider plot
-                                                         plotOutput("overview_spider_plot")
-                                                         ) #column
-                                                  
-                                                ) #fluidPage
+                                                         )
+                                                ) #fluidRow
                                                 
                                        ), #tabPanel
                                                 
@@ -323,37 +327,36 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 20) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
-    girafe(ggobj=graph, width_svg=11, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
+    girafe(ggobj=graph, width_svg=18, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
     
   }) #renderPlot
   
   
   #Rendering spider plot for overview page
-  output$overview_spider_plot <- renderPlot({
+  output$overview_spider_plot <- renderPlot(bg="#BBBCBC", {
     
-    max_values <- rep(quantile(watershed_data[[input$map_var]], na.rm=T, p=0.9), 8)
-    min_values <- rep(min(watershed_data[[input$map_var]], na.rm=T), 8)
-    
-    
-    data_temp <- watershed_data %>%
-      filter(Date > input$map_date[1] & Date < input$map_date[2]) %>%
+    watershed_data %>%
+      dplyr::select(c(1, 5:15)) %>%
+      filter(Temp < quantile(Temp, 0.9, na.rm=T)) %>%
+      filter(pH < quantile(pH, 0.9, na.rm=T)) %>%
+      filter(Cond < quantile(Cond, 0.9, na.rm=T)) %>%
+      filter(Turb < quantile(Turb, 0.9, na.rm=T)) %>%
+      filter(TSS < quantile(TSS, 0.9, na.rm=T)) %>%
+      filter(DRP < quantile(DRP, 0.9, na.rm=T)) %>%
+      filter(Cl < quantile(Cl, 0.9, na.rm=T)) %>%
+      filter(NO3_N < quantile(NO3_N, 0.9, na.rm=T)) %>%
+      filter(SO4 < quantile(SO4, 0.9, na.rm=T)) %>%
+      filter(E_coli < quantile(E_coli, 0.9, na.rm=T)) %>%
+      mutate_at(vars(-Watershed), scales::rescale) %>%
       group_by(Watershed) %>%
-      summarize(mean=mean(eval(as.name(input$map_var)), na.rm=T))
-    
-    data <- as.data.frame(t(data_temp[,-1]))
-    colnames(data) <- data_temp$Watershed
-    
-    data <- rbind(min_values, data)
-    data <- rbind(max_values, data)
-    
-    radarchart(data,
-               cglty = 1,       # Grid line type
-               cglcol = "gray", # Grid line color
-               cglwd = 1,       # Line width of the grid
-               pcol = "blue",        # Color of the line
-               plwd = 2,        # Width of the line
-               plty = 1,
-               title=paste0(input$map_var, " by watershed"))
+      summarise_at(-1, mean, na.rm=T) %>%
+      dplyr::select("Watershed", input$map_var) %>%
+      pivot_longer(cols=c(-Watershed), names_to="Variable")%>%
+      pivot_wider(names_from=c(Watershed)) %>%
+      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3)+
+      theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            axis.text=element_blank(), axis.ticks=element_blank())+
+      scale_x_continuous(expand = expansion(mult = 0.4))
     
   }) #renderPlot
   
@@ -514,9 +517,9 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarise_at(-1, mean, na.rm=T) %>%
       filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
-      ggradar(plot.extent.x.sf=1.1, plot.extent.y.sf=1.5, values.radar = "", group.line.width = 0.7, group.point.size = 3)+
+      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3)+
       theme_minimal()+
-      theme(plot.background  = element_rect(color="#523178", size=4), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+      theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             axis.text=element_blank(), axis.ticks=element_blank())+
       scale_colour_discrete("Watershed")
     
