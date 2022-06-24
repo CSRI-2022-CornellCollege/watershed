@@ -10,6 +10,7 @@ library(rgdal)
 library(lubridate)
 library(ggiraph)
 library(elementalist) # devtools::install_github("teunbrand/elementalist")
+library(ggradar)
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -126,11 +127,13 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                   ), #column
                                                   
                                                   column(6,
-                                                         selectInput("add_watershed_spider",
+                                                         pickerInput("add_watershed_spider",
                                                                      label="Compare With Watershed(s)",
                                                                      choices=c(watersheds,"None"),
-                                                                     selected="None"
-                                                                     ), #selectInput
+                                                                     selected="None",
+                                                                     multiple=T,
+                                                                     options = list(`actions-box` = TRUE)
+                                                                     ), #pickerInput
                                                          # Spider plot
                                                          plotOutput("map_spider_plot", height=350),
                                                          br(),
@@ -485,62 +488,35 @@ server <- function(input, output, session) {
   #Updating input
   observeEvent(input$map_shape_click, {
     
-    updateSelectInput(session=session, "add_watershed_spider", label = NULL,
+    updatePickerInput(session=session, "add_watershed_spider", label = NULL,
                       choices = c(watersheds[watersheds!=input$map_shape_click$id], "None"),
                       selected = "None")
     
   }) #observeEvent
   
-  #Setting min and max ranges for spider plot
-  max_TSS <- quantile(watershed_data$TSS, p=0.9, na.rm=T)
-  max_DRP <- quantile(watershed_data$DRP, p=0.9, na.rm=T)
-  max_Cl <- quantile(watershed_data$Cl, p=0.9, na.rm=T)
-  max_NO3_N <- quantile(watershed_data$NO3_N, p=0.9, na.rm=T)
-  max_SO4 <- quantile(watershed_data$SO4, p=0.9, na.rm=T)
-  max_E_coli <- quantile(watershed_data$E_coli, p=0.9, na.rm=T)
-  
-  max_values <- c(max_TSS, max_DRP, max_Cl, max_NO3_N, max_SO4, max_E_coli)
-  
-  min_values <- watershed_data %>%
-    dplyr::select(10:15) %>%
-    summarize_all(min, na.rm=T)
-  
   
   #Rendering spider plot for watershed page
   output$map_spider_plot <- renderPlot({
     
-    data <- watershed_data %>%
-      filter(Watershed==input$map_shape_click$id) %>%
-      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
-      dplyr::select(10:15) %>%
-      summarize_all(mean, na.rm=T)
-    
-    colors <- "blue"
-    data <- rbind(min_values, data)
-    data <- rbind(max_values, data)
-    sp_legend <- list("topleft", legend=c(input$map_shape_click$id), col=c("Blue"), bty = "n", pch=20)
-    
-    if (input$add_watershed_spider %in% watersheds){
-      to_compare <- watershed_data %>%
-        filter(Watershed==input$add_watershed_spider) %>%
-        filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
-        dplyr::select(10:15) %>%
-        summarize_all(mean, na.rm=T)
-      
-      colors <- c("blue", "red")
-      data <- rbind(data, to_compare)
-      sp_legend <- list("topleft", legend=c(input$map_shape_click$id, input$add_watershed_spider), col=c("Blue", "Red"), bty = "n", pch=20)
-    }
-    
-    radarchart(data,
-               cglty = 1,       # Grid line type
-               cglcol = "gray", # Grid line color
-               cglwd = 1,       # Line width of the grid
-               pcol = colors,        # Color of the line
-               plwd = 2,        # Width of the line
-               plty = 1,
-               title=paste0("Chemical concentrations in the ", input$map_shape_click$id, " Watershed"))
-    do.call("legend", sp_legend)
+    watershed_data %>%
+      dplyr::select(c(1, 5:15)) %>%
+      filter(Temp < quantile(Temp, 0.9, na.rm=T)) %>%
+      filter(pH < quantile(pH, 0.9, na.rm=T)) %>%
+      filter(Cond < quantile(Cond, 0.9, na.rm=T)) %>%
+      filter(Turb < quantile(Turb, 0.9, na.rm=T)) %>%
+      filter(TSS < quantile(TSS, 0.9, na.rm=T)) %>%
+      filter(DRP < quantile(DRP, 0.9, na.rm=T)) %>%
+      filter(Cl < quantile(Cl, 0.9, na.rm=T)) %>%
+      filter(NO3_N < quantile(NO3_N, 0.9, na.rm=T)) %>%
+      filter(SO4 < quantile(SO4, 0.9, na.rm=T)) %>%
+      filter(E_coli < quantile(E_coli, 0.9, na.rm=T)) %>%
+      mutate_at(vars(-Watershed), scales::rescale) %>%
+      group_by(Watershed) %>%
+      summarise_at(-1, mean, na.rm=T) %>%
+      filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
+      ggradar()+
+      theme_minimal()+
+      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=4))
     
   }) #renderPlot
   
