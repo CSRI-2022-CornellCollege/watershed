@@ -48,15 +48,36 @@ plot(data, xlim=c(1, 15), ylim=c(0, 7), type="l", xlab="Week", ylab="NO3_N")
 
 ### ARIMA Model
 
-This plot shows the fitted values in the first ten weeks. Then it shows the predicted NO3_N values and the observed NO3_N values in red and blue respectively. Clearly fitting a model for just one summer is not sufficient.
+These plots show two week predictions for NO3_N based on past NO3_N and Precipitation.
 
 ``` {r arima-model}
-fit <- Arima(y=data[1:10], xreg=rain[1:10], order=c(1,1,0), seasonal=F)
-plot(fitted(fit), xlim=c(1, 15), ylim=c(0, 7), xlab="Week", ylab="NO3_N")
-pred <- c(fitted(fit)[10], predict(fit, n.ahead=4, newxreg=rain[11:14])$pred)
-lines(x=10:14, y=pred, col="red")
-lines(x=10:14, y=c(fitted(fit)[10], data[11:14]), col="blue")
-abline(v=10, lty=3)
+par(mfrow=c(2,3))
+for (i in 8:13){
+  fit <- Arima(y=data[1:i], xreg=rain[1:i], order=c(1,1,0), seasonal=F)
+  plot(data[1:i], xlim=c(1, 15), ylim=c(0, 7), xlab="Week", ylab="NO3_N", type="l")
+  pred <- c(data[i], predict(fit, n.ahead=1, newxreg=rain[i+1])$pred)
+  lines(x=i:(i+1), y=pred, col="red")
+  lines(x=i:(i+1), y=c(data[i], data[i+1]), col="blue")
+  abline(v=i, lty=3)
+}
+```
+
+<br></br>
+
+### ARIMA Model without Precipitation
+
+These plots show two week predictions for NO3_N based on past NO3_N.
+
+``` {r arima-model-2}
+par(mfrow=c(2,3))
+for (i in 8:13){
+  fit <- Arima(y=data[1:i], order=c(1,1,0), seasonal=F)
+  plot(data[1:i], xlim=c(1, 15), ylim=c(0, 7), xlab="Week", ylab="NO3_N", type="l")
+  pred <- c(data[i], predict(fit, n.ahead=1)$pred)
+  lines(x=i:(i+1), y=pred, col="red")
+  lines(x=i:(i+1), y=c(data[i], data[i+1]), col="blue")
+  abline(v=i, lty=3)
+}
 ```
 
 <br></br>
