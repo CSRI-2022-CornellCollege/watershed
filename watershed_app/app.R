@@ -11,6 +11,7 @@ library(lubridate)
 library(ggiraph)
 library(elementalist) # devtools::install_github("teunbrand/elementalist")
 library(ggradar)
+library(ggthemr)
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -25,7 +26,6 @@ years <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010
 watersheds <- c("Indian Creek", "Bear Creek", "Blue Creek", "Morgan Creek", "Mud Creek",
                 "North Bear Creek", "Otter Creek", "Lime Creek")
 
-#options(shiny.sanitize.errors = FALSE)
 
 # Pages
 
@@ -211,19 +211,22 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
 wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
 
                     column(4,
-                           column(1),
-                           column(10, selectInput("wqi_year",
+                           column(3),
+                           column(6, selectInput("wqi_year", width="100%",
                                                   label="Select Year",
                                                   choices=years,
                                                   selected="2021"
                            ) #selectInput
                            ), #column
-                           column(1),
+                           column(3),
                            br(),
                            br(),
                            br(),
                            br(),
-                           girafeOutput("wqi")
+                           girafeOutput("wqi"),
+                           br(),
+                           p("The Water Quality Index is a system proposed by Chris Jones, a research engineer at the University of Iowa IIHR-Hydroscience and Engineering. It takes five components into account: Dissolved Oxygen, E. coli, Total Nitrogen, Total Phosphorus, and Turbidity.", style="font-size: 20px;"),
+                           p("To find out more about the Water Quality Index, please visit ", tags$a(href="https://cjones.iihr.uiowa.edu/blog/2021/05/iowa-rivers-1-45-fair-marginal-ugly", "this link."), style="font-size: 20px;")
                     ), #column
                     column(8,
                            column(6,
@@ -237,6 +240,10 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                                   girafeOutput("E_coli_bar", height=250),
                                   br(),
                                   girafeOutput("DRP_bar", height=250),
+                                  br(),
+                                  p("About the WQI", style="font-size: 20px;"),
+                                  br(),
+                                  p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were.", style="font-size: 20px;")
                                   
                                   ) #column
                     ) #column
@@ -789,7 +796,8 @@ server <- function(input, output, session) {
       theme_minimal()+
       theme(plot.background  = element_rect(color="#523178", size=3.5))+
       xlab("")+
-      ylab("")
+      ylab("")+
+      ggtitle("Water Quality Index by Watershed")
     
     girafe(ggobj = graph)
     
