@@ -59,7 +59,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                      ), #selectInput
                                      
                                      # Choose date range for data on map
-                                     sliderInput("map_date",
+                                     sliderInput("map_date", width="80%",
                                                  label="Date Range",
                                                  min=min(watershed_data$Date),
                                                  max=max(watershed_data$Date),
@@ -211,7 +211,19 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
 wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
 
                     column(4,
-                           "Description of WQI goes here"
+                           column(1),
+                           column(10, selectInput("wqi_year",
+                                                  label="Select Year",
+                                                  choices=years,
+                                                  selected="2021"
+                           ) #selectInput
+                           ), #column
+                           column(1),
+                           br(),
+                           br(),
+                           br(),
+                           br(),
+                           girafeOutput("wqi")
                     ), #column
                     column(8,
                            column(6,
@@ -225,19 +237,6 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                                   girafeOutput("E_coli_bar", height=250),
                                   br(),
                                   girafeOutput("DRP_bar", height=250),
-                                  br(),
-                                  br(),
-                                  br(),
-                                  column(1),
-                                  column(10, sliderInput("wqi_date", width="100%",
-                                                        label="Date Range",
-                                                        min=min(watershed_data$Date),
-                                                        max=max(watershed_data$Date),
-                                                        value=c(min(watershed_data$Date),
-                                                                max(watershed_data$Date))
-                                  ) #sliderInput
-                                  ), #column
-                                  column(1)
                                   
                                   ) #column
                     ) #column
@@ -711,10 +710,96 @@ server <- function(input, output, session) {
   # Water Quality Index Page
   #
   
+  getF1 <- function(data){
+    vars <- rep(FALSE, 5)
+    vars[1] <- any(data$DO < 5, na.rm=T)
+    vars[2] <- any(data$E_coli > 235, na.rm=T)
+    vars[3] <- any(data$NO3_N > 3.5, na.rm=T)
+    vars[4] <- any(data$P > 0.18, na.rm=T)
+    vars[5] <- any(data$Turb > 25, na.rm=T)
+    return((sum(vars)/5)*100)
+  }
+  
+  getF2 <- function(data){
+    DO_tests <- sum(!is.na(data$DO))
+    DO_failed <- sum(data$DO < 5, na.rm=T)
+    
+    E_coli_tests <- sum(!is.na(data$E_coli))
+    E_coli_failed <- sum(data$E_coli > 235, na.rm=T)
+    
+    NO3_N_tests <- sum(!is.na(data$NO3_N))
+    NO3_N_failed <- sum(data$NO3_N > 3.5, na.rm=T)
+    
+    P_tests <- sum(!is.na(data$P))
+    P_failed <- sum(data$P > 0.18, na.rm=T)
+    
+    Turb_tests <- sum(!is.na(data$Turb))
+    Turb_failed <- sum(data$Turb > 25, na.rm=T)
+    
+    return(((DO_failed+E_coli_failed+NO3_N_failed+P_failed+Turb_failed)/(DO_tests+E_coli_tests+NO3_N_tests+P_tests+Turb_tests))*100)
+  }
+  
+  getF3 <- function(data){
+    DO_departure <- sum((5/data$DO[data$DO < 5 & !is.na(data$DO)])-1)
+    E_coli_departure <- sum((data$E_coli[data$E_coli > 235 & !is.na(data$E_coli)]/235)-1)
+    NO3_N_departure <- sum((data$NO3_N[data$NO3_N > 3.5 & !is.na(data$NO3_N)]/3.5)-1)
+    P_departure <- sum((data$P[data$P > 0.18 & !is.na(data$P)]/0.18)-1)
+    Turb_departure <- sum((data$Turb[data$Turb > 25 & !is.na(data$Turb)]/25)-1)
+    departure <- sum(c(DO_departure, E_coli_departure, NO3_N_departure, P_departure, Turb_departure))
+    
+    DO_tests <- sum(!is.na(data$DO))
+    E_coli_tests <- sum(!is.na(data$E_coli))
+    NO3_N_tests <- sum(!is.na(data$NO3_N))
+    P_tests <- sum(!is.na(data$P))
+    Turb_tests <- sum(!is.na(data$Turb))
+    nse <- departure/(DO_tests+E_coli_tests+NO3_N_tests+P_tests+Turb_tests)
+    
+    return(nse/((0.01*nse)+0.01))
+  }
+  
+  # WQI
+  output$wqi <- renderGirafe({
+    
+    data_vec <- list()
+    for (i in 1:8){
+      data <- watershed_data %>%
+        mutate(P=DRP*0.3261) %>%
+        filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
+        filter(Watershed==watersheds[i])
+      data_vec[[i]] <- data
+    }
+    
+    
+    # F1
+    F1 <- sapply(data_vec, getF1)
+    
+    # F2
+    F2 <- sapply(data_vec, getF2)
+    
+    # F3
+    F3 <- sapply(data_vec, getF3)
+    
+    # Index
+    index <- 100 - (sqrt(F1^2+F2^2+F3^2)/1.732)
+    
+    graph <- data.frame(Watershed=watersheds, WQI=index) %>%
+      ggplot(aes(y=reorder(Watershed, WQI), x=WQI))+
+      geom_col_interactive(aes(tooltip=WQI, data_id=WQI))+
+      # coord_polar(theta="x", direction=1)+
+      theme_minimal()+
+      theme(plot.background  = element_rect(color="#523178", size=3.5))+
+      xlab("")+
+      ylab("")
+    
+    girafe(ggobj = graph)
+    
+  })
+  
+  
   # Dissolved Oxygen Graph
   output$DO_bar <- renderGirafe({
     graph <- watershed_data %>%
-      filter(Date < input$wqi_date[2] & Date > input$wqi_date[1]) %>%
+      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
       group_by(Watershed) %>%
       summarize_at(c("DO"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=DO))+
@@ -732,7 +817,7 @@ server <- function(input, output, session) {
   #E. coli graph
   output$E_coli_bar <- renderGirafe({
     graph <- watershed_data %>%
-      filter(Date < input$wqi_date[2] & Date > input$wqi_date[1]) %>%
+      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
       group_by(Watershed) %>%
       summarize_at(c("E_coli"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=E_coli))+
@@ -750,7 +835,7 @@ server <- function(input, output, session) {
   # Nitrate Graph
   output$NO3_N_bar <- renderGirafe({
     graph <- watershed_data %>%
-      filter(Date < input$wqi_date[2] & Date > input$wqi_date[1]) %>%
+      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
       group_by(Watershed) %>%
       summarize_at(c("NO3_N"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=NO3_N))+
@@ -768,11 +853,12 @@ server <- function(input, output, session) {
   # Phosphorus Graph
   output$DRP_bar <- renderGirafe({
     graph <- watershed_data %>%
-      filter(Date < input$wqi_date[2] & Date > input$wqi_date[1]) %>%
+      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
       group_by(Watershed) %>%
-      summarize_at(c("DRP"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=DRP))+
-      geom_col_interactive(aes(tooltip=DRP, data_id=DRP), fill="#00cc00")+
+      mutate(P=0.3261*DRP) %>%
+      summarize_at(c("P"), median, na.rm=T) %>%
+      ggplot(aes(x=Watershed, y=P))+
+      geom_col_interactive(aes(tooltip=P, data_id=P), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=.18, data_id=.18), yintercept = .18, color="red", size=2)+
       geom_text(aes(4,.18,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
       ggtitle("Phosphorus Levels by Watershed")+
@@ -786,7 +872,7 @@ server <- function(input, output, session) {
   # Turbidity Graph
   output$Turb_bar <- renderGirafe({
     graph <- watershed_data %>%
-      filter(Date < input$wqi_date[2] & Date > input$wqi_date[1]) %>%
+      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
       group_by(Watershed) %>%
       summarize_at(c("Turb"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=Turb))+
