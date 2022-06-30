@@ -128,9 +128,11 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          ), #pickerInput
                                                          # Years plot
                                                          girafeOutput("map_years_plot", height=350),
+                                                         bsTooltip(id="map_years_plot", placement="top", title="This graph compares trends of the variable of interest across years."),
                                                          br(),
                                                          # Scatterplot
                                                          girafeOutput("map_change_plot", height=250),
+                                                         bsTooltip(id="map_change_plot", placement="top", title="This scatterplot shows observations over time.")
                                                   ), #column
                                                   
                                                   column(6,
@@ -143,9 +145,11 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      ), #pickerInput
                                                          # Spider plot
                                                          plotOutput("map_spider_plot", height=350),
+                                                         bsTooltip(id="map_spider_plot", placement="top", title="This spider plot shows a breakdown of the means of different variables in a given watershed."),
                                                          br(),
                                                          # Histogram
-                                                         girafeOutput("map_dist_plot", height=250)
+                                                         girafeOutput("map_dist_plot", height=250),
+                                                         bsTooltip(id="map_dist_plot", placement="top", title="This histogram shows the distribution of the variable of interest.")
                                                          ), #column
                                                   
                                                 ) #fluidPage
