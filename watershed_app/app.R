@@ -330,6 +330,23 @@ ui <- fluidPage(theme="shiny.css",
 
 server <- function(input, output, session) {
   
+  getLabel <- function(str){
+    
+    return(switch(str,
+           "DO"="Dissolved Oxygen",
+           "Temp"="Water Temperature",
+           "pH"="Acidity",
+           "Cond"="Conductivity",
+           "Turb"="Turbidity",
+           "TSS"="Total Suspended Solids",
+           "DRP"="Dissolved Reactive Phosphorus",
+           "Cl"="Chloride",
+           "NO3_N"="Nitrate",
+           "SO4"="Sulfate",
+           "E_coli"="E. coli"
+           ))
+  }
+  
   #
   # Map Page- Overview Tab
   #
@@ -343,7 +360,7 @@ server <- function(input, output, session) {
       ggplot(aes(x=Date, y=value, color=Watershed))+
       geom_line(size=1)+
       geom_point_interactive(aes(tooltip=value, data_id=value), size=2)+
-      ylab(input$map_var)+
+      ylab(getLabel(input$map_var))+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
@@ -495,7 +512,7 @@ server <- function(input, output, session) {
       geom_line(size=2)+
       geom_point_interactive(aes(tooltip=avg, data_id=avg), size=4)+
       xlab("Date")+
-      ylab(input$map_var)+
+      ylab(getLabel(input$map_var))+
       ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
       labs(color="Year")+
       theme_minimal(base_size = 30) +
@@ -556,7 +573,7 @@ server <- function(input, output, session) {
       ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
       geom_point_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), size=4)+
       xlab("Date")+
-      ylab(input$map_var)+
+      ylab(getLabel(input$map_var))+
       ggtitle(paste0("Observed ", input$map_var))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
@@ -574,7 +591,7 @@ server <- function(input, output, session) {
       ggplot(aes(x=eval(as.name(input$map_var))))+
       geom_histogram_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), fill="#267326")+
       ylab("Count")+
-      xlab(input$map_var)+
+      xlab(getLabel(input$map_var))+
       ggtitle(paste0("Distribution of ", input$map_var))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
