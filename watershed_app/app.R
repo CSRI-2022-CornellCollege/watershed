@@ -241,7 +241,8 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                                   br(),
                                   girafeOutput("DRP_bar", height=250),
                                   br(),
-                                  p("About the WQI", style="font-size: 20px;"),
+                                  br(),
+                                  p("About the WQI", style="font-size: 20px;font-weight: bold;"),
                                   br(),
                                   p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were.", style="font-size: 20px;")
                                   
