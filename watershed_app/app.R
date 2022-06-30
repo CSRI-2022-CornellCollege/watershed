@@ -11,7 +11,7 @@ library(lubridate)
 library(ggiraph)
 library(elementalist) # devtools::install_github("teunbrand/elementalist")
 library(ggradar)
-library(ggthemr)
+library(shinyBS)
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -88,14 +88,16 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          ), #column
                                                   column(6,
                                                          # Overview spider plot
-                                                         plotOutput("overview_spider_plot")
+                                                         plotOutput("overview_spider_plot"),
+                                                         bsTooltip(id="overview_spider_plot", placement="top", title="This spider plot shows means of the variable of interest across all watersheds. Points further from the center of the spider plot correspond to larger values.")
                                                          ) #column
                                                   
                                                 ), #fluidPage
                                                 fluidRow(
                                                   column(10,
                                                          # Overview line graph
-                                                         girafeOutput("overview_watersheds", height=290)
+                                                         girafeOutput("overview_watersheds", height=290),
+                                                         bsTooltip(id="overview_watersheds", placement="top", title="This graph shows how a variable changes over the course of a summer broken down by watershed.")
                                                          ),
                                                   column(2,
                                                          # Select year to display on graph
@@ -359,8 +361,8 @@ server <- function(input, output, session) {
       group_by(Watershed, Date) %>%
       summarize(value = mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=Date, y=value, color=Watershed))+
-      geom_line(size=1)+
-      geom_point_interactive(aes(tooltip=value, data_id=value), size=2)+
+      geom_line(size=2)+
+      geom_point_interactive(aes(tooltip=value, data_id=value), size=4)+
       ylab(getLabel(input$map_var))+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
       theme_minimal(base_size = 25) +
@@ -369,6 +371,7 @@ server <- function(input, output, session) {
     girafe(ggobj=graph, width_svg=18, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
     
   }) #renderPlot
+  
   
   
   #Rendering spider plot for overview page
@@ -398,7 +401,6 @@ server <- function(input, output, session) {
       scale_x_continuous(expand = expansion(mult = 0.4))
     
   }) #renderPlot
-  
   
   
   
