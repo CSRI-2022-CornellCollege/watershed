@@ -12,7 +12,6 @@ library(ggiraph)
 library(elementalist) # devtools::install_github("teunbrand/elementalist")
 library(ggradar)
 library(shinyBS)
-library(latex2exp)
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -84,7 +83,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          h3(strong("About the Dashboard")),
                                                          br(),
                                                          p("Dr. Martin St. Clair, along with his students, has been collecting water samples from watersheds near Cedar Rapids, Iowa since 2002. These samples are tested for many different variables with an emphasis on different chemical concentrations in the water.", style="font-size: 20px;"),
-                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. The graph on the right shows the change of a variable over the course of one year in all watersheds.", style="font-size: 20px;"),
+                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see.", style="font-size: 20px;"),
                                                          br()
                                                          ), #column
                                                   column(6,
