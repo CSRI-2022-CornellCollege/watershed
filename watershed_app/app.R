@@ -791,7 +791,7 @@ server <- function(input, output, session) {
     
     graph <- data.frame(Watershed=watersheds, WQI=index) %>%
       ggplot(aes(y=reorder(Watershed, WQI), x=WQI))+
-      geom_col_interactive(aes(tooltip=WQI, data_id=WQI))+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(WQI, digits=4)), data_id=WQI))+
       # coord_polar(theta="x", direction=1)+
       theme_minimal()+
       theme(plot.background  = element_rect(color="#523178", size=3.5))+
@@ -811,11 +811,12 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarize_at(c("DO"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=DO))+
-      geom_col_interactive(aes(tooltip=DO, data_id=DO), fill="#00cc00")+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(DO, digits=4), " mg O2/L"), data_id=DO), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=5, data_id=5), yintercept = 5, color="red", size=2)+
       geom_text(aes(4,5,label = "Threshold (Higher is Better)", vjust = -1), color="red", size=6)+
       ggtitle("Dissolved Oxygen Levels by Watershed")+
       xlab("")+
+      ylab("Dissolved Oxygen")+
       theme_minimal(base_size = 20) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
@@ -829,11 +830,12 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarize_at(c("E_coli"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=E_coli))+
-      geom_col_interactive(aes(tooltip=E_coli, data_id=E_coli), fill="#00cc00")+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", E_coli, " CFU"), data_id=E_coli), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=235, data_id=235), yintercept = 235, color="red", size=2)+
       geom_text(aes(4,235,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
       ggtitle("E. coli Levels by Watershed")+
       xlab("")+
+      ylab("E. coli")+
       theme_minimal(base_size = 20) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
@@ -847,11 +849,12 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarize_at(c("NO3_N"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=NO3_N))+
-      geom_col_interactive(aes(tooltip=NO3_N, data_id=NO3_N), fill="#00cc00")+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(NO3_N, digits=4), " mg NO3-N/L"), data_id=NO3_N), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=3.5, data_id=3.5), yintercept = 3.5, color="red", size=2)+
       geom_text(aes(4,3.5,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
       ggtitle("Nitrate Levels by Watershed")+
       xlab("")+
+      ylab("Total Nitrogen")+
       theme_minimal(base_size = 20) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
@@ -866,11 +869,12 @@ server <- function(input, output, session) {
       mutate(P=0.3261*DRP) %>%
       summarize_at(c("P"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=P))+
-      geom_col_interactive(aes(tooltip=P, data_id=P), fill="#00cc00")+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(P, digits=3), " mg/L"), data_id=P), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=.18, data_id=.18), yintercept = .18, color="red", size=2)+
       geom_text(aes(4,.18,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
       ggtitle("Phosphorus Levels by Watershed")+
       xlab("")+
+      ylab("Total Phosphorus")+
       theme_minimal(base_size = 20) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
@@ -884,11 +888,12 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarize_at(c("Turb"), median, na.rm=T) %>%
       ggplot(aes(x=Watershed, y=Turb))+
-      geom_col_interactive(aes(tooltip=Turb, data_id=Turb), fill="#00cc00")+
+      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", Turb, " NTU"), data_id=Turb), fill="#00cc00")+
       geom_hline_interactive(aes(tooltip=25, data_id=25), yintercept = 25, color="red", size=2)+
       geom_text(aes(4,25,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
       ggtitle("Turbidity by Watershed")+
       xlab("")+
+      ylab("Turbidity")+
       theme_minimal(base_size = 20) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
