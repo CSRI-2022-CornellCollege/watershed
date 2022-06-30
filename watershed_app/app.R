@@ -20,7 +20,8 @@ watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
 merged_watershed_shp <- shapefile("data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("data/watershed_geo/sites.shp")
 
-variables <- c("DO", "Temp", "pH", "Cond", "Turb", "TSS", "DRP", "Cl", "NO3_N", "SO4", "E_coli")
+variables <- c("Dissolved Oxygen"="DO", "Water Temperature"="Temp", "Acidity"="pH", "Conductivity"="Cond", "Turbidity"="Turb", "Total Suspended Solids"="TSS",
+               "Dissolved Reactive Phosphorus"="DRP", "Chloride"="Cl", "Nitrate"="NO3_N", "Sulfate"="SO4", "E. coli"="E_coli")
 years <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012",
            "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")
 watersheds <- c("Indian Creek", "Bear Creek", "Blue Creek", "Morgan Creek", "Mud Creek",
