@@ -38,7 +38,7 @@ This data is from 2012-2016. It contains 862 observations with the variables in 
 | Site | Where sample was taken | N/A |
 | Date | Date sample was taken | N/A |
 | Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen | O2/L |
+| DO | Dissolved Oxygen | mg O2/L |
 | Temp | Temperature of Water | Degrees Celsius |
 | pH | Acidity | Logarithmic Scale |
 | Cond | Conductivity | S/cm |
@@ -61,7 +61,7 @@ This data is from 2017-2021. It contains 457 observations with the variables in 
 | Site | Where sample was taken | N/A |
 | Date | Date sample was taken | N/A |
 | Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen | O2/L |
+| DO | Dissolved Oxygen | mg O2/L |
 | Temp | Temperature of Water | Degrees Celsius |
 | pH | Acidity | Logarithmic Scale |
 | Cond | Conductivity | S/cm |
@@ -89,7 +89,7 @@ This dataset contains 3987 observations and 15 variables. The watershed variable
 | Site | Where sample was taken | N/A |
 | Date | Date sample was taken | N/A |
 | Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen | O2/L |
+| DO | Dissolved Oxygen | mg O2/L |
 | Temp | Temperature of Water | Degrees Celsius |
 | pH | Acidity | Logarithmic Scale |
 | Cond | Conductivity | S/cm |
