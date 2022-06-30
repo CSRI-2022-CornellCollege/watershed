@@ -345,7 +345,7 @@ server <- function(input, output, session) {
       geom_point_interactive(aes(tooltip=value, data_id=value), size=2)+
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj=graph, width_svg=18, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
@@ -498,7 +498,7 @@ server <- function(input, output, session) {
       ylab(input$map_var)+
       ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
       labs(color="Year")+
-      theme_minimal(base_size = 25) +
+      theme_minimal(base_size = 30) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj=graph, width_svg=12, height_svg=7)
@@ -558,7 +558,7 @@ server <- function(input, output, session) {
       xlab("Date")+
       ylab(input$map_var)+
       ggtitle(paste0("Observed ", input$map_var))+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -576,7 +576,7 @@ server <- function(input, output, session) {
       ylab("Count")+
       xlab(input$map_var)+
       ggtitle(paste0("Distribution of ", input$map_var))+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -818,7 +818,7 @@ server <- function(input, output, session) {
       ggtitle("Dissolved Oxygen Levels by Watershed")+
       xlab("")+
       ylab("Dissolved Oxygen")+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -837,7 +837,7 @@ server <- function(input, output, session) {
       ggtitle("E. coli Levels by Watershed")+
       xlab("")+
       ylab("E. coli")+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -856,7 +856,7 @@ server <- function(input, output, session) {
       ggtitle("Nitrate Levels by Watershed")+
       xlab("")+
       ylab("Total Nitrogen")+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -876,7 +876,7 @@ server <- function(input, output, session) {
       ggtitle("Phosphorus Levels by Watershed")+
       xlab("")+
       ylab("Total Phosphorus")+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
@@ -895,7 +895,7 @@ server <- function(input, output, session) {
       ggtitle("Turbidity by Watershed")+
       xlab("")+
       ylab("Turbidity")+
-      theme_minimal(base_size = 20) +
+      theme_minimal(base_size = 25) +
       theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
     
     girafe(ggobj = graph, width_svg=11, height_svg=5)
