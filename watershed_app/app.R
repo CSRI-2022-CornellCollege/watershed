@@ -12,6 +12,7 @@ library(ggiraph)
 library(elementalist) # devtools::install_github("teunbrand/elementalist")
 library(ggradar)
 library(shinyBS)
+library(latex2exp)
 
 watershed_data <- read_csv("data/combined_data_clean3.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
@@ -232,6 +233,7 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                            br(),
                            br(),
                            girafeOutput("wqi"),
+                           bsTooltip(id="wqi", placement="top", title="This chart shows the calculated water quality index for each watershed in the given year."),
                            br(),
                            p("The Water Quality Index is a system proposed by Chris Jones, a research engineer at the University of Iowa IIHR-Hydroscience and Engineering. It takes five components into account: Dissolved Oxygen, E. coli, Total Nitrogen, Total Phosphorus, and Turbidity.", style="font-size: 20px;"),
                            p("To find out more about the Water Quality Index, please visit ", tags$a(href="https://cjones.iihr.uiowa.edu/blog/2021/05/iowa-rivers-1-45-fair-marginal-ugly", "this link."), style="font-size: 20px;")
@@ -239,20 +241,27 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                     column(8,
                            column(6,
                                   girafeOutput("DO_bar", height=250),
+                                  bsTooltip(id="DO_bar", placement="bottom", title="This graph compares median dissolved oxygen values in a given summer to a threshold value for each watershed."),
                                   br(),
                                   girafeOutput("NO3_N_bar", height=250),
+                                  bsTooltip(id="NO3_N_bar", placement="top", title="This graph compares median nitrate values in a given summer to a threshold value for each watershed."),
                                   br(),
-                                  girafeOutput("Turb_bar", height=250)
+                                  girafeOutput("Turb_bar", height=250),
+                                  bsTooltip(id="Turb_bar", placement="top", title="This graph compares median turbidity values in a given summer to a threshold value for each watershed.")
                                   ),
                            column(6,
                                   girafeOutput("E_coli_bar", height=250),
+                                  bsTooltip(id="E_coli_bar", placement="bottom", title="This graph compares median E. coli counts in a given summer to a threshold value for each watershed."),
                                   br(),
                                   girafeOutput("DRP_bar", height=250),
+                                  bsTooltip(id="DRP_bar", placement="top", title="This graph compares median phosphorus values in a given summer to a threshold value for each watershed."),
                                   br(),
                                   br(),
                                   p("About the WQI", style="font-size: 20px;font-weight: bold;"),
                                   br(),
-                                  p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were.", style="font-size: 20px;")
+                                  p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were.", style="font-size: 20px;"),
+                                  actionButton("formulas", "Click Here for Formulas"),
+                                  bsPopover(id="formulas", placement="top", title="Formulas Used to Calculate WQI", content="test", trigger="click"),
                                   
                                   ) #column
                     ) #column
