@@ -204,8 +204,9 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                            choiceValues=c("Date", "Week"),
                                            selected="Week"
                                            ),
-                              plotOutput("precip_plot")
-                              )
+                              plotOutput("precip_plot"),
+                              bsTooltip(id="precip_plot", placement="top", title="This plot compares trends in precipitation to the value of the variable of interest over time.")
+                              ) #column
                        
 ) #tabPanel
 
