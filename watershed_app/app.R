@@ -128,11 +128,11 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          ), #pickerInput
                                                          # Years plot
                                                          girafeOutput("map_years_plot", height=350),
-                                                         bsTooltip(id="map_years_plot", placement="top", title="This graph compares trends of the variable of interest across years."),
+                                                         bsPopover(id="map_years_plot", placement="top", title="About this Line Graph", content="This graph compares trends of the variable of interest across years."),
                                                          br(),
                                                          # Scatterplot
                                                          girafeOutput("map_change_plot", height=250),
-                                                         bsTooltip(id="map_change_plot", placement="top", title="This scatterplot shows observations over time.")
+                                                         bsPopover(id="map_change_plot", placement="top", title="About this Scatterplot", content="This scatterplot shows observations over time.")
                                                   ), #column
                                                   
                                                   column(6,
@@ -149,7 +149,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                          br(),
                                                          # Histogram
                                                          girafeOutput("map_dist_plot", height=250),
-                                                         bsTooltip(id="map_dist_plot", placement="top", title="This histogram shows the distribution of the variable of interest.")
+                                                         bsPopover(id="map_dist_plot", placement="top", title="About this Histogram", content="This histogram shows the distribution of the variable of interest.")
                                                          ), #column
                                                   
                                                 ) #fluidPage
@@ -197,7 +197,7 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                        ) #column
                               ) #fluidRow
                               ),
-                       column(6, style = "overflow-y:scroll;",
+                       column(6,
                               radioButtons("precip_interval",
                                            label="Select Time Interval",
                                            choiceNames=c("Days", "Weeks"),
@@ -205,7 +205,7 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                            selected="Week"
                                            ),
                               plotOutput("precip_plot"),
-                              bsTooltip(id="precip_plot", placement="top", title="This plot compares trends in precipitation to the value of the variable of interest over time.")
+                              bsPopover(id="precip_plot", placement="bottom", title="About this Graph", content="This graph compares trends in precipitation to the value of the variable of interest over time. Precipitation and the variable of interest are both scaled to be between 0 and 1. Then the two variable are aggregated over the selected year(s) by day or by week and plotted over a few months.")
                               ) #column
                        
 ) #tabPanel
@@ -232,7 +232,7 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                            br(),
                            br(),
                            girafeOutput("wqi"),
-                           bsTooltip(id="wqi", placement="top", title="This chart shows the calculated water quality index for each watershed in the given year."),
+                           bsPopover(id="wqi", placement="right", title="About the Water Quality Index", content="This graph shows the calculated water quality index for each watershed in the given year.", options = list(container = "body")),
                            br(),
                            p("The Water Quality Index is a system proposed by Chris Jones, a research engineer at the University of Iowa IIHR-Hydroscience and Engineering. It takes five components into account: Dissolved Oxygen, E. coli, Total Nitrogen, Total Phosphorus, and Turbidity.", style="font-size: 20px;"),
                            p("To find out more about the Water Quality Index, please visit ", tags$a(href="https://cjones.iihr.uiowa.edu/blog/2021/05/iowa-rivers-1-45-fair-marginal-ugly", "this link."), style="font-size: 20px;")
@@ -240,25 +240,25 @@ wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
                     column(8,
                            column(6,
                                   girafeOutput("DO_bar", height=250),
-                                  bsTooltip(id="DO_bar", placement="bottom", title="This graph compares median dissolved oxygen values in a given summer to a threshold value for each watershed."),
+                                  bsPopover(id="DO_bar", placement="bottom", title="About this graph", content="This graph compares median dissolved oxygen values in a given summer to a threshold value for each watershed."),
                                   br(),
                                   girafeOutput("NO3_N_bar", height=250),
-                                  bsTooltip(id="NO3_N_bar", placement="top", title="This graph compares median nitrate values in a given summer to a threshold value for each watershed."),
+                                  bsPopover(id="NO3_N_bar", placement="top", title="About this graph", content="This graph compares median nitrate values in a given summer to a threshold value for each watershed. It should be noted that we are using nitrate-N rather here than total N. This will result in a higher calculated water quality index."),
                                   br(),
                                   girafeOutput("Turb_bar", height=250),
-                                  bsTooltip(id="Turb_bar", placement="top", title="This graph compares median turbidity values in a given summer to a threshold value for each watershed.")
+                                  bsPopover(id="Turb_bar", placement="top", title="About this graph", content="This graph compares median turbidity values in a given summer to a threshold value for each watershed.")
                                   ),
                            column(6,
                                   girafeOutput("E_coli_bar", height=250),
-                                  bsTooltip(id="E_coli_bar", placement="bottom", title="This graph compares median E. coli counts in a given summer to a threshold value for each watershed."),
+                                  bsPopover(id="E_coli_bar", placement="bottom", title="About this graph", content="This graph compares median E. coli counts in a given summer to a threshold value for each watershed."),
                                   br(),
                                   girafeOutput("DRP_bar", height=250),
-                                  bsTooltip(id="DRP_bar", placement="top", title="This graph compares median phosphorus values in a given summer to a threshold value for each watershed."),
+                                  bsPopover(id="DRP_bar", placement="top", title="About this graph", content="This graph compares median phosphorus values in a given summer to a threshold value for each watershed. It should be noted that we are using dissolved reactive phosphorus here rather than total P. This will result in a higher calculated water quality index."),
                                   br(),
                                   br(),
                                   p("About the WQI", style="font-size: 20px;font-weight: bold;"),
                                   br(),
-                                  p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were.", style="font-size: 20px;"),
+                                  p("The WQI used here was calculated by looking at whether a single sample did not meet each threshold, the number of samples that did not meet thresholds, and how far from the thresholds these samples were. The WQI is calculated for a single summer.", style="font-size: 20px;"),
                                   actionButton("formulas", "Click Here for Formulas"),
                                   bsPopover(id="formulas", placement="top", title="Formulas Used to Calculate WQI", content="test", trigger="click"),
                                   
