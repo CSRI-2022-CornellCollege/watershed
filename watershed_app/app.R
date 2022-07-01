@@ -59,14 +59,23 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                        
                                      ), #selectInput
                                      
-                                     # Choose date range for data on map
-                                     sliderInput("map_date", width="80%",
-                                                 label="Date Range",
-                                                 min=min(watershed_data$Date),
-                                                 max=max(watershed_data$Date),
-                                                 value=c(min(watershed_data$Date),
-                                                         max(watershed_data$Date))
-                                     ) #sliderInput
+                                     column(1),
+                                     column(10,
+                                            # Choose date range for data on map
+                                            sliderInput("map_date", width="100%",
+                                                        label="Date Range",
+                                                        min=min(watershed_data$Date),
+                                                        max=max(watershed_data$Date),
+                                                        value=c(min(watershed_data$Date),
+                                                                max(watershed_data$Date))
+                                            ), #sliderInput
+                                     
+                                     ), #column
+                                     column(1),
+                                     br(),
+                                     br(),
+                                     br(),
+                                     br(),
                                      
 
                                    ), #sidebarPanel
@@ -348,7 +357,7 @@ aboutPage <- tabPanel(div(class="navTab", "About"),
                   br(),
                   br(),
                   br(),
-                  br(),
+                  br()
                   ), #sidebarPanel
                 mainPanel(
                        h3("How these Parameters were Measured", style="font-weight: bold;text-align: center;"),
@@ -435,7 +444,7 @@ server <- function(input, output, session) {
       geom_line(size=2)+
       geom_point_interactive(aes(tooltip=value, data_id=value), size=4)+
       ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Comparison of ", input$map_var, " in ", input$overview_year, " by watershed"))+
+      ggtitle(paste0("Comparison of ", getLabel(input$map_var), " in ", input$overview_year, " by Watershed"))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
@@ -583,11 +592,11 @@ server <- function(input, output, session) {
       group_by(Watershed, year, day) %>%
       summarize(avg=mean(eval(as.name(input$map_var)))) %>%
       ggplot(aes(x=day, y=avg, color=year))+
-      geom_line(size=2)+
-      geom_point_interactive(aes(tooltip=avg, data_id=avg), size=4)+
+      geom_line(size=3)+
+      geom_point_interactive(aes(tooltip=avg, data_id=avg), size=6)+
       xlab("Date")+
       ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Comparison of ", input$map_var, " by year"))+
+      ggtitle(paste0("Comparison of ", getLabel(input$map_var), " by year"))+
       labs(color="Year")+
       theme_minimal(base_size = 30) +
       theme(plot.background  = element_rect(color="#523178", size=7))
@@ -645,10 +654,10 @@ server <- function(input, output, session) {
       filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
       filter(Watershed==input$map_shape_click$id) %>%
       ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
-      geom_point_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), size=4)+
+      geom_point_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), size=6)+
       xlab("Date")+
       ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Observed ", input$map_var))+
+      ggtitle(paste0("Observed ", getLabel(input$map_var)))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
@@ -666,7 +675,7 @@ server <- function(input, output, session) {
       geom_histogram_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), fill="#267326")+
       ylab("Count")+
       xlab(getLabel(input$map_var))+
-      ggtitle(paste0("Distribution of ", input$map_var))+
+      ggtitle(paste0("Distribution of ", getLabel(input$map_var)))+
       theme_minimal(base_size = 25) +
       theme(plot.background  = element_rect(color="#523178", size=7))
     
