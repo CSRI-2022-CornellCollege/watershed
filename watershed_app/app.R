@@ -205,7 +205,9 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                            selected="Week"
                                            ),
                               plotOutput("precip_plot"),
-                              bsPopover(id="precip_plot", placement="bottom", title="About this Graph", content="This graph compares trends in precipitation to the value of the variable of interest over time. Precipitation and the variable of interest are both scaled to be between 0 and 1. Then the two variable are aggregated over the selected year(s) by day or by week and plotted over a few months.")
+                              bsPopover(id="precip_plot", placement="bottom", title="About this Graph", content="This graph compares trends in precipitation to the value of the variable of interest over time. Precipitation and the variable of interest are both scaled to be between 0 and 1. Then the two variable are aggregated over the selected year(s) by day or by week and plotted over a few months."),
+                              br(),
+                              p("Precipitation data is made up of estimated historical rainfall data from the Iowa Environmental Mesonet (IEM) at Iowa State University. The data was obtained ", tags$a(href="https://mesonet.agron.iastate.edu/rainfall/", "here."), style="font-size: 20px;")
                               ) #column
                        
 ) #tabPanel
@@ -332,7 +334,7 @@ aboutPage <- tabPanel(div(class="navTab", "About"),
                 ")),
                 sidebarLayout(     
                 sidebarPanel(
-                  h3(tags$strong("About the Project")),
+                  h3(tags$strong("About the Project"), style="text-align: center;"),
                   br(),
                   br(),
                        p("The Coe Water Quality Lab has been studying eastern Iowa surface waters for over twenty years.  Led by professor of chemistry and environmental studies Marty St. Clair, over eighty undergraduates have taken part in this effort to provide data to decision makers and citizens.  Find out more at the lab ", tags$a(href="https://cwql.weebly.com/", "website."), style="font-size: 20px;"),
