@@ -321,13 +321,67 @@ datatablePage <- tabPanel(div(class="navTab", "Data"),
 
 
 
+aboutPage <- tabPanel(div(class="navTab", "About"),
+                   
+                # Allows inline equations to be used   
+                tags$div(HTML("<script type='text/x-mathjax-config'>
+                MathJax.Hub.Config({
+                tex2jax: {inlineMath: [['$','$']]}
+                });
+                </script>
+                ")),
+                sidebarLayout(     
+                sidebarPanel(
+                  h3(tags$strong("About the Project")),
+                  br(),
+                  br(),
+                       p("The Coe Water Quality Lab has been studying eastern Iowa surface waters for over twenty years.  Led by professor of chemistry and environmental studies Marty St. Clair, over eighty undergraduates have taken part in this effort to provide data to decision makers and citizens.  Find out more at the lab ", tags$a(href="https://cwql.weebly.com/", "website."), style="font-size: 20px;"),
+                       br(),
+                       p("For more information on the importance of the different parameters measured, see YSI’s ", tags$a(href="https://www.ysi.com/parameters", "website."), "To compare to values from Iowa, take a look at the Iowa Department of Natural Resource’s ", tags$a(href="http://publications.iowa.gov/23899/1/WFS-2017-02.pdf", "compilation"), " of data from 2000-2016.", style="font-size: 20px;"),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  br(),
+                  ), #sidebarPanel
+                mainPanel(
+                       h3("How these Parameters were Measured", style="font-weight: bold;text-align: center;"),
+                       br(),
+                       br(),
+                       column(5,
+                              tags$b(tags$u("Sample Collection")),
+                              tags$ul(tags$li("Surface water samples were collected by direct grab sampling or by bucket from bridges. (Containers were rinsed three times with stream water prior to collecting the final sample.) Samples to be analyzed for nitrate, chloride, sulfate, and TSS were collected in polyethylene bottles. Polyethylene sample bottles were washed in a laboratory dishwasher with distilled water rinse.  Samples to be analyzed for dissolved reactive phosphorus (DRP) were filtered in the field through a 0.45 μm nylon syringe tip filter into a 60 mL acid-washed brown glass bottle. Samples for", tags$em("E. coli"), "determination were collected by grab sampling in disposable sterile sample containers. Field blanks and duplicates were collected on each sampling trip. All samples were immediately stored in a cooler at 4 degrees Celsius until they could be transported back to the laboratory and refrigerated. Samples were typically analyzed within 24 hours of sampling.")),
+                              br(),
+                              tags$b(tags$u("Field Measurements")),
+                              tags$ul(tags$li("Dissolved oxygen, water temperature, pH, conductivity, and turbidity were measured on-site for most surface-water samples collected. Dissolved oxygen, water temperature, pH, and conductivity have been measured with a YSI multi-parameter instrument since 2005; prior to that, individual parameter instruments were used. Turbidity was determined using a Hach 2100Q or 2100 P turbidimeter. Field instruments were calibrated on a daily basis. Dissolved oxygen values are reported in mg/L of", withMathJax("$O_{2}$"), ", turbidity is reported in NTU, and conductivity is reported in S/cm"))
+                              ), #column
+                       column(1),
+                       column(5,
+                              tags$b(tags$u("Laboratory Measurements")),
+                              tags$ul(tags$li("Nitrate, sulfate, and chloride were measured using either a Dionex or Metrohm ion chromatograph using ", withMathJax("$Na_{2}CO_{3}/ NaHCO_{3}$"), "eluant. Nitrate is reported as mg/L of ", withMathJax("$NO_{3}^-$-$N$"), ", sulfate as mg/L of ", withMathJax("$SO_{4}^{-2}$"), ", and chloride as mg/L of ", withMathJax("$Cl^-$"), "."),
+                                      tags$li("Dissolved reactive orthophosphate (DRP) has been analyzed using a Lachat QuikChem 8500 Series 2 flow injection analyzer running Lachat method 10-115-01-1-P since 2009. Prior to 2009, Hach method 8048 was used. All glassware used in sampling and analysis of DRP was acid washed in 1 M hydrochloric acid. Phosphate values were reported as mg/L of ", withMathJax("$PO_{4}^{3-}$"), ". "),
+                                      tags$li("Total suspended solids were measured using standard gravimetric techniques with pre-weighed and -dried glass fiber filters, and reported as mg solid/liter."),
+                                      tags$li(tags$em("E. coli"), "counts were determined using the IDEXX Colilert/Quanti-Tray 2000 most probable number technique since 2007. Results were reported as colony forming units (CFU) per 100 mL. Samples were typically diluted by 10X with sterile water to extend the countable range."))
+                              ), #column
+                       column(1)
+                       ) #mainPanel
+                ) #sidebarLayout
+                      
+) #tabPanel
+
+
+
 
 #
 # Structure
 #
 ui <- fluidPage(theme="shiny.css",
   
-  navbarPage("Watershed Project", position="static-top",
+  navbarPage("Watershed Dashboard", position="static-top",
              
              mapPage,
              
@@ -335,7 +389,9 @@ ui <- fluidPage(theme="shiny.css",
              
              wqiPage,
              
-             datatablePage
+             datatablePage,
+             
+             aboutPage
                       
              ), #navbarPage
   
