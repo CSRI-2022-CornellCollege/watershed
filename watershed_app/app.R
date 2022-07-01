@@ -13,7 +13,7 @@ library(elementalist) # devtools::install_github("teunbrand/elementalist")
 library(ggradar)
 library(shinyBS)
 
-watershed_data <- read_csv("data/combined_data_clean3.csv")
+watershed_data <- read_csv("data/combined_data_clean4.csv")
 rainfall_data <- read_csv("data/CR_airport_rainfall.csv")
 watershed_rain_data <- read_csv("data/watershed_rain_data.csv")
 watershed_shp <- shapefile("data/watershed_geo/watersheds.shp")
