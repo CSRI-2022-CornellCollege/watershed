@@ -89,7 +89,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                   column(6,
                                                          # Overview spider plot
                                                          plotOutput("overview_spider_plot"),
-                                                         bsTooltip(id="overview_spider_plot", placement="top", title="This spider plot shows means of the variable of interest across all watersheds. Points further from the center of the spider plot correspond to larger values.")
+                                                         bsPopover(id="overview_spider_plot", placement="left", title="About the Spider Plot", content="This spider plot shows means of the variable of interest across all watersheds. Points further from the center of the spider plot correspond to larger values. The middle dashed line represents the median value of the variable being displayed.")
                                                          ) #column
                                                   
                                                 ), #fluidPage
@@ -97,7 +97,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                   column(10,
                                                          # Overview line graph
                                                          girafeOutput("overview_watersheds", height=290),
-                                                         bsTooltip(id="overview_watersheds", placement="top", title="This graph shows how a variable changes over the course of a summer broken down by watershed.")
+                                                         bsPopover(id="overview_watersheds", placement="top", title="About this Line Graph", content="This graph shows how a variable changes over the course of a summer in each watershed.")
                                                          ),
                                                   column(2,
                                                          # Select year to display on graph
@@ -145,7 +145,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                                      ), #pickerInput
                                                          # Spider plot
                                                          plotOutput("map_spider_plot", height=350),
-                                                         bsTooltip(id="map_spider_plot", placement="top", title="This spider plot shows a breakdown of the means of different variables in a given watershed."),
+                                                         bsPopover(id="map_spider_plot", placement="top", title="About this Spider Plot", content="This spider plot shows a breakdown of the means of different variables in a given watershed. These variable are all scaled to be between 0 and 1. This allows variables of differing scales to be compared. The middle dashed line represents a value of 0.5"),
                                                          br(),
                                                          # Histogram
                                                          girafeOutput("map_dist_plot", height=250),
@@ -408,7 +408,7 @@ server <- function(input, output, session) {
       dplyr::select("Watershed", input$map_var) %>%
       pivot_longer(cols=c(-Watershed), names_to="Variable")%>%
       pivot_wider(names_from=c(Watershed)) %>%
-      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3)+
+      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3, gridline.mid.colour="grey")+
       theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             axis.text=element_blank(), axis.ticks=element_blank())+
       scale_x_continuous(expand = expansion(mult = 0.4))
@@ -571,7 +571,7 @@ server <- function(input, output, session) {
       group_by(Watershed) %>%
       summarise_at(-1, mean, na.rm=T) %>%
       filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
-      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3)+
+      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3, gridline.mid.colour="grey")+
       theme_minimal()+
       theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             axis.text=element_blank(), axis.ticks=element_blank())+
