@@ -1,0 +1,39 @@
+
+body {
+  background-color: #BBBCBC;
+  color: #414042;
+  font-family: Verdana, sans-serif;
+}
+
+.navbar-default {
+    background-color: #523178;
+}
+
+.navbar-default .navbar-brand{
+  color: #FFFFFF !important;
+}
+.navTab {
+  color: #FFFFFF !important;
+}
+
+.navbar-nav li a:hover, .navbar-nav > .active > a {
+  background-color: #422760 !important;
+}
+
+.overview_info {
+  color: #FFFFFF;
+}
+
+.rightAlign {
+  float:right;
+}
+
+
+
+.shiny-output-error {
+  visibility: hidden;
+}
+
+.shiny-output-error:before {
+  visibility: hidden;
+}
