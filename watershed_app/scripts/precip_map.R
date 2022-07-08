@@ -25,7 +25,7 @@ output$precip_map<- renderLeaflet({
   p_selected_watershed <- subset(merged_watershed_shp, merged_watershed_shp$Watershed==input$precip_map_shape_click$id)
   
   # Color palette
-  palette <- colorNumeric("Blues", merged_watershed_shp$value)
+  #palette <- colorNumeric("Blues", merged_watershed_shp$value)
   
   # Leaflet map
   pmap <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
@@ -43,7 +43,7 @@ output$precip_map<- renderLeaflet({
     # Adding polgyons for watersheds
     addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 0.5,
                 opacity = 1.0, fillOpacity = 0.5,
-                fillColor = ~palette(value),
+                fillColor = "#99e6ff",
                 highlightOptions = highlightOptions(color = "white", weight = 2,
                                                     bringToFront = TRUE),
                 label=paste0(merged_watershed_shp$Watershed, " Watershed"),
@@ -53,7 +53,7 @@ output$precip_map<- renderLeaflet({
     addPolygons(data=p_selected_watershed, color="white", opacity=1, fillOpacity=0, weight=5,highlightOptions = highlightOptions(color = "white", weight = 5,
                                                                                                                                  bringToFront = TRUE)) %>%
     # Add legend
-    addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title="Precipitation (in)") %>%
+    #addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title="Precipitation (in)") %>%
     
     # Add markers and set visibility according to zoom level
     addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%

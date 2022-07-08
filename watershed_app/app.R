@@ -188,7 +188,7 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                        pickerInput("precip_year",
                                                    label="Select Year(s)",
                                                    choices=years,
-                                                   selected=c("2021", "2020", "2019"),
+                                                   selected="2021",
                                                    multiple=T,
                                                    options = list(`actions-box` = TRUE)
                                        ) #pickerInput
@@ -209,9 +209,10 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
                                            choiceValues=c("Date", "Week"),
                                            selected="Week"
                                            ),
-                              plotOutput("precip_plot"),
-                              bsPopover(id="precip_plot", placement="bottom", title="About this Graph", content="This graph compares trends in precipitation to the value of the variable of interest over time. Precipitation and the variable of interest are both scaled to be between 0 and 1. Then the two variable are aggregated over the selected year(s) by day or by week and plotted over a few months."),
+                              plotOutput("precip_plot", height=300),
                               br(),
+                              girafeOutput("precip_bar", height=350),
+                              bsPopover(id="precip_plot", placement="bottom", title="About this Graph", content="This graph compares trends in precipitation to the value of the variable of interest over time. Precipitation and the variable of interest are both scaled to be between 0 and 1. Then the two variable are aggregated over the selected year(s) by day or by week and plotted over a few months."),
                               p("Precipitation data is made up of estimated historical rainfall data from the Iowa Environmental Mesonet (IEM) at Iowa State University. The data was obtained ", tags$a(href="https://mesonet.agron.iastate.edu/rainfall/", "here."), style="font-size: 20px;")
                               ) #column
                        
@@ -515,9 +516,13 @@ server <- function(input, output, session) {
   # Precipitation Page
   #
   
+  
   # Precipitation Map
   source("~/watershed/watershed_app/scripts/precip_map.R", local=T)
   
+  
+  #Precipitation Bar Graph
+  source("~/watershed/watershed_app/scripts/precip_bar.R", local=T)
   
   
   # Precipitation Plot
