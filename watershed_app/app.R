@@ -94,8 +94,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                                   column(6,
                                                          h3(strong("About the Dashboard")),
                                                          br(),
-                                                         p("Dr. Martin St. Clair, along with his students, has been collecting water samples from watersheds near Cedar Rapids, Iowa since 2002. These samples are tested for many different variables with an emphasis on different chemical concentrations in the water.", style="font-size: 20px;"),
-                                                         p("The interactive map on the left displays information about the watersheds. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see.", style="font-size: 20px;"),
+                                                         p("A watershed is an area of land over which all water drains to a particular body of water, such as a creek or stream. The interactive map on the left displays information about the watersheds. This dashboard aims to visualize data about eight watersheds along the Cedar River. You can select a watershed to see detailed information about that location. You may also change the variable of interest and the range of dates you would like to see. Hover over graphs to see additional information.", style="font-size: 20px;"),
                                                          br()
                                                          ), #column
                                                   column(6,
@@ -127,7 +126,7 @@ mapPage <- tabPanel(div(class="navTab", "Map"),
                                        # This page is for displaying graphs of a certain watershed when a user clicks on it in the interactive map       
                                        tabPanel(div(class="navTab", "Plots"), value="plots_tab",
                                                 fluidPage(
-                                                  h2(strong(textOutput("map_title"), style="text-align: center;")),
+                                                  h2(strong(textOutput("map_title"), style="text-align: left;")),
                                                   br(),
                                                   column(6,
                                                          # Choose years
@@ -233,18 +232,11 @@ precipPage <- tabPanel(div(class="navTab", "Precipitation"),
 wqiPage <- tabPanel(div(class="navTab", "Water Quality Index"),
 
                     column(4,
-                           column(3),
-                           column(6, selectInput("wqi_year", width="100%",
+                           selectInput("wqi_year", width="50%",
                                                   label="Select Year",
                                                   choices=years,
                                                   selected="2021"
-                           ) #selectInput
-                           ), #column
-                           column(3),
-                           br(),
-                           br(),
-                           br(),
-                           br(),
+                           ), #selectInput
                            girafeOutput("wqi"),
                            bsPopover(id="wqi", placement="right", title="About the Water Quality Index", content="This graph shows the calculated water quality index for each watershed in the given year.", options = list(container = "body")),
                            br(),
@@ -375,7 +367,14 @@ aboutPage <- tabPanel(div(class="navTab", "About"),
                               tags$ul(tags$li("Nitrate, sulfate, and chloride were measured using either a Dionex or Metrohm ion chromatograph using ", withMathJax("$Na_{2}CO_{3}/ NaHCO_{3}$"), "eluant. Nitrate is reported as mg/L of ", withMathJax("$NO_{3}^-$-$N$"), ", sulfate as mg/L of ", withMathJax("$SO_{4}^{-2}$"), ", and chloride as mg/L of ", withMathJax("$Cl^-$"), "."),
                                       tags$li("Dissolved reactive orthophosphate (DRP) has been analyzed using a Lachat QuikChem 8500 Series 2 flow injection analyzer running Lachat method 10-115-01-1-P since 2009. Prior to 2009, Hach method 8048 was used. All glassware used in sampling and analysis of DRP was acid washed in 1 M hydrochloric acid. Phosphate values were reported as mg/L of ", withMathJax("$PO_{4}^{3-}$"), ". "),
                                       tags$li("Total suspended solids were measured using standard gravimetric techniques with pre-weighed and -dried glass fiber filters, and reported as mg solid/liter."),
-                                      tags$li(tags$em("E. coli"), "counts were determined using the IDEXX Colilert/Quanti-Tray 2000 most probable number technique since 2007. Results were reported as colony forming units (CFU) per 100 mL. Samples were typically diluted by 10X with sterile water to extend the countable range."))
+                                      tags$li(tags$em("E. coli"), "counts were determined using the IDEXX Colilert/Quanti-Tray 2000 most probable number technique since 2007. Results were reported as colony forming units (CFU) per 100 mL. Samples were typically diluted by 10X with sterile water to extend the countable range.")),
+                              br(),
+                              tags$b(tags$u("Sources")),
+                              tags$ul(tags$li("Randall, G. W., & Mulla, D. J. (2001). Nitrate Nitrogen in Surface Waters as Influenced by Climatic Conditions and Agricultural Practices. J. Environ. Qual.,30, 337–344."),
+                                      tags$li("Schilling, Keith E;Libra, Robert D, The Relationship of Nitrate Concentrations in Streams to Row Crop Land Use in Iowa. Journal of Environmental Quality; Nov/Dec 2000; 29, 6; ProQuest, pg. 1846"),
+                                      tags$li("Dr. St. Clair, M., Cartwright, M., Edwards, C., Groenwold, N., McDermott, A., Olson, A., & Jake Tupper. (2021).Cedar River Tributary Study"),
+                                      tags$li("Jones, C. (2021, May 27).Iowa Rivers 1 to 45: The Fair, the Marginal, and the Ugly,https://cjones.iihr.uiowa.edu/"),
+                                      tags$li("Iowa State University IEM Rainfall"))
                               ), #column
                        column(1)
                        ) #mainPanel
