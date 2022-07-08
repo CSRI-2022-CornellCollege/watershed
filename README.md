@@ -2,3 +2,4 @@ The Coe Water Quality Lab has been studying eastern Iowa surface waters for over
 
 This dashoard was created by Brian Cochran during the Cornell College Summer Research Institute with Professor Tyler George. CSRI is an eight week summer program during which students work with faculty members on various projects. For more information about CSRI see Cornell College's [website](https://www.cornellcollege.edu/academic-affairs/faculty-development/internal/summer-research.shtml).
 
+To read more about the data click [here](Data/README.md).
