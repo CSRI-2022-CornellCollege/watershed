@@ -23,8 +23,7 @@ merged_watershed_shp <- shapefile("data/watershed_geo/merged_watersheds.shp")
 sites <- shapefile("data/watershed_geo/sites.shp")
 
 # Creating lists for select inputs
-variables <- c("Dissolved Oxygen"="DO", "Water Temperature"="Temp", "Acidity"="pH", "Conductivity"="Cond", "Turbidity"="Turb", "Total Suspended Solids"="TSS",
-               "Dissolved Reactive Phosphorus"="DRP", "Chloride"="Cl", "Nitrate"="NO3_N", "Sulfate"="SO4", "E. coli"="E_coli")
+variables <- c("Dissolved Oxygen (mg/L O2)"="DO", "Water Temperature (Degrees Celsius)"="Temp", "Acidity"="pH", "Conductivity (S/cm)"="Cond", "Turbidity (NTU)"="Turb", "Total Suspended Solids (mg/L"="TSS", "Dissolved Reactive Phosphorus (mg/L PO4)"="DRP", "Chloride (mg/L Cl)"="Cl", "Nitrate (mg/L NO3-N)"="NO3_N", "Sulfate (mg/L SO4)"="SO4", "E. coli (CFU/100 mL)"="E_coli")
 years <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012",
            "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")
 watersheds <- c("Indian Creek", "Bear Creek", "Blue Creek", "Morgan Creek", "Mud Creek",
@@ -32,11 +31,6 @@ watersheds <- c("Indian Creek", "Bear Creek", "Blue Creek", "Morgan Creek", "Mud
 
 
 # Pages
-
-bottomPanel <- fluidRow(
-  tags$img(src="https://www.h-net.org/jobs/logo_view.php?id=59029&scale=0")
-) #fluidRow
-
 
 
 
@@ -433,55 +427,12 @@ server <- function(input, output, session) {
   #
   
   # Graph which filters by year and gives a line graph comparing different watersheds over one summer
-  output$overview_watersheds <- renderGirafe({
-    
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) == input$overview_year) %>%
-      group_by(Watershed, Date) %>%
-      summarize(value = mean(eval(as.name(input$map_var)))) %>%
-      ggplot(aes(x=Date, y=value, color=Watershed))+
-      geom_line(size=2)+
-      geom_point_interactive(aes(tooltip=value, data_id=value), size=4)+
-      ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Comparison of ", getLabel(input$map_var), " in ", input$overview_year, " by Watershed"))+
-      theme_minimal(base_size = 25) +
-      theme(plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj=graph, width_svg=18, height_svg=5, options = list(opts_sizing(rescale = TRUE, width = 1)))
-    
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/overview_watersheds.R", local=T)
   
   
   
   #Rendering spider plot for overview page
-  output$overview_spider_plot <- renderPlot(bg="#BBBCBC", {
-    
-    # filter by 90th percentile for each variable and pivot to get data in proper format
-    watershed_data %>%
-      dplyr::select(c(1, 5:15)) %>%
-      filter(Temp < quantile(Temp, 0.9, na.rm=T)) %>%
-      filter(pH < quantile(pH, 0.9, na.rm=T)) %>%
-      filter(Cond < quantile(Cond, 0.9, na.rm=T)) %>%
-      filter(Turb < quantile(Turb, 0.9, na.rm=T)) %>%
-      filter(TSS < quantile(TSS, 0.9, na.rm=T)) %>%
-      filter(DRP < quantile(DRP, 0.9, na.rm=T)) %>%
-      filter(Cl < quantile(Cl, 0.9, na.rm=T)) %>%
-      filter(NO3_N < quantile(NO3_N, 0.9, na.rm=T)) %>%
-      filter(SO4 < quantile(SO4, 0.9, na.rm=T)) %>%
-      filter(E_coli < quantile(E_coli, 0.9, na.rm=T)) %>%
-      mutate_at(vars(-Watershed), scales::rescale) %>%
-      group_by(Watershed) %>%
-      summarise_at(-1, mean, na.rm=T) %>%
-      dplyr::select("Watershed", input$map_var) %>%
-      pivot_longer(cols=c(-Watershed), names_to="Variable")%>%
-      pivot_wider(names_from=c(Watershed)) %>%
-      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3, gridline.mid.colour="grey")+
-      theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-            axis.text=element_blank(), axis.ticks=element_blank())+
-      # expand to leave room at edges for labels
-      scale_x_continuous(expand = expansion(mult = 0.4))
-    
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/overview_spider_plot.R", local=T)
   
   
   
@@ -522,60 +473,7 @@ server <- function(input, output, session) {
   }) #observeEvent
   
   # Render leaflet map
-  output$map <- renderLeaflet({
-    
-    #get average values for variable in question
-    by_watershed <- watershed_data %>%
-      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
-      group_by(Watershed) %>%
-      summarize(value=mean(eval(as.name(input$map_var)), na.rm=T))
-    
-    #add values to shapefile in correct places
-    merged_watershed_shp$value <- by_watershed$value[match(merged_watershed_shp$Watershed, by_watershed$Watershed)]
-    
-    # One polygon for watershed currently selected to be drawn over rest of map, shows users current selection
-    selected_watershed <- subset(merged_watershed_shp, merged_watershed_shp$Watershed==input$map_shape_click$id)
-    
-    # Color palette
-    palette <- colorNumeric("RdYlGn", merged_watershed_shp$value, reverse=T)
-    
-    # Leaflet map
-    map <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
-                                                         zoomDelta = 0.25)) %>%
-      # View and bounds
-      setView(center_long, center_lat, 9.5) %>%
-      setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
-      
-      # Using ESRI NatGeoWorldMap for background
-      addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
-      
-      # Adding lines for subwatersheds
-      addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
-      
-      # Adding polgyons for watersheds
-      addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 0.5,
-                  opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~palette(value),
-                  highlightOptions = highlightOptions(color = "white", weight = 2,
-                                                      bringToFront = TRUE),
-                  label=paste0(merged_watershed_shp$Watershed, " Watershed"),
-                  layerId=~Watershed) %>%
-      
-      # Adding polygon for watershed that the user has currently selected
-      addPolygons(data=selected_watershed, color="white", opacity=1, fillOpacity=0, weight=5,highlightOptions = highlightOptions(color = "white", weight = 5,
-                                                                                                                                 bringToFront = TRUE)) %>%
-      
-      # Add legend
-      addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title=input$map_var) %>%
-      
-      # Add markers and set visibility according to zoom level
-      addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
-      groupOptions("markers", zoomLevels=seq(9.5, 20, 0.25))
-    
-    map
-    
-    
-  }) #renderLeaflet
+  source("~/watershed/watershed_app/scripts/map.R", local=T)
   
   
   
@@ -585,29 +483,7 @@ server <- function(input, output, session) {
   #
   
   # Plot comparing years for a given variable
-  output$map_years_plot <- renderGirafe({
-    
-    graph <- watershed_data %>%
-      mutate(year=substr(Date, 1, 4)) %>%
-      mutate(day=as.Date(paste0("0000-", substr(Date, 6, 10)))) %>%
-      filter(year %in% input$map_years_year) %>%
-      filter(Watershed==input$map_shape_click$id) %>%
-      group_by(Watershed, year, day) %>%
-      summarize(avg=mean(eval(as.name(input$map_var)))) %>%
-      ggplot(aes(x=day, y=avg, color=year))+
-      geom_line(size=3)+
-      geom_point_interactive(aes(tooltip=avg, data_id=avg), size=6)+
-      xlab("Date")+
-      ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Comparison of ", getLabel(input$map_var), " by year"))+
-      labs(color="Year")+
-      theme_minimal(base_size = 30) +
-      theme(plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj=graph, width_svg=12, height_svg=7)
-      
-    
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/map_years_plot.R", local=T)
   
   
   
@@ -623,69 +499,14 @@ server <- function(input, output, session) {
   
   
   #Rendering spider plot for watershed page
-  output$map_spider_plot <- renderPlot(bg="#BBBCBC", {
-    
-    #filter by 90th percentile
-    watershed_data %>%
-      dplyr::select(c(1, 5:15)) %>%
-      filter(Temp < quantile(Temp, 0.9, na.rm=T)) %>%
-      filter(pH < quantile(pH, 0.9, na.rm=T)) %>%
-      filter(Cond < quantile(Cond, 0.9, na.rm=T)) %>%
-      filter(Turb < quantile(Turb, 0.9, na.rm=T)) %>%
-      filter(TSS < quantile(TSS, 0.9, na.rm=T)) %>%
-      filter(DRP < quantile(DRP, 0.9, na.rm=T)) %>%
-      filter(Cl < quantile(Cl, 0.9, na.rm=T)) %>%
-      filter(NO3_N < quantile(NO3_N, 0.9, na.rm=T)) %>%
-      filter(SO4 < quantile(SO4, 0.9, na.rm=T)) %>%
-      filter(E_coli < quantile(E_coli, 0.9, na.rm=T)) %>%
-      mutate_at(vars(-Watershed), scales::rescale) %>%
-      group_by(Watershed) %>%
-      summarise_at(-1, mean, na.rm=T) %>%
-      filter(Watershed==input$map_shape_click$id | Watershed %in% input$add_watershed_spider) %>%
-      ggradar(values.radar = "", group.line.width = 0.7, group.point.size = 3, gridline.mid.colour="grey")+
-      theme_minimal()+
-      theme(plot.background  = element_rect(color="#523178", size=3.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-            axis.text=element_blank(), axis.ticks=element_blank())+
-      scale_colour_discrete("Watershed")
-    
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/map_spider_plot.R", local=T)
   
   
   # Plot showing observations of variable over a given time
-  output$map_change_plot <- renderGirafe({
-    
-    graph <- watershed_data %>%
-      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
-      filter(Watershed==input$map_shape_click$id) %>%
-      ggplot(aes(x=Date, y=eval(as.name(input$map_var))))+
-      geom_point_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), size=6)+
-      xlab("Date")+
-      ylab(getLabel(input$map_var))+
-      ggtitle(paste0("Observed ", getLabel(input$map_var)))+
-      theme_minimal(base_size = 25) +
-      theme(plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/map_change_plot.R", local=T)
   
   # Plot showing distribution of variable in a given time
-  output$map_dist_plot <- renderGirafe({
-    
-    graph <- watershed_data %>%
-      filter(Date < input$map_date[2] & Date > input$map_date[1]) %>%
-      filter(Watershed==input$map_shape_click$id) %>%
-      ggplot(aes(x=eval(as.name(input$map_var))))+
-      geom_histogram_interactive(aes(tooltip=eval(as.name(input$map_var)), data_id=eval(as.name(input$map_var))), fill="#267326")+
-      ylab("Count")+
-      xlab(getLabel(input$map_var))+
-      ggtitle(paste0("Distribution of ", getLabel(input$map_var)))+
-      theme_minimal(base_size = 25) +
-      theme(plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-    
-  }) #renderPlot
+  source("~/watershed/watershed_app/scripts/map_dist_plot.R", local=T)
   
   
   
@@ -694,138 +515,13 @@ server <- function(input, output, session) {
   # Precipitation Page
   #
   
-  output$precip_map<- renderLeaflet({
-    
-    #get rain data for years selected by user
-    rain_data <- watershed_rain_data %>%
-      filter(substr(Date, 1, 4) %in% input$precip_year)
-    
-    # get means of rainfall and transpose the dataframe
-    rain_data <- rain_data[,-1] %>%
-      summarize_all(mean, na.rm=T) %>%
-      t() %>%
-      as.data.frame()
-    
-    #get columns names
-    rain_data$Watershed <- rownames(rain_data)
-    
-    #get values for each waterhsed on map
-    p_by_watershed <- watershed_data %>%
-      group_by(Watershed) %>%
-      summarize(value=mean(NO3_N, na.rm=T))
-    
-    #add values to shapefile in the correct place
-    merged_watershed_shp$value <- rain_data$V1[match(merged_watershed_shp$Watershed, rain_data$Watershed)]
-    
-    # One polygon for watershed currently selected to be drawn over rest of map, shows users current selection
-    p_selected_watershed <- subset(merged_watershed_shp, merged_watershed_shp$Watershed==input$precip_map_shape_click$id)
-    
-    # Color palette
-    palette <- colorNumeric("Blues", merged_watershed_shp$value)
-    
-    # Leaflet map
-    pmap <- leaflet(options = leafletOptions(zoomSnap = 0.25, 
-                                            zoomDelta = 0.25)) %>%
-      # View and bounds
-      setView(center_long, center_lat, 10) %>%
-      setMaxBounds(min_long-0.25, min_lat-0.25, max_long+0.25, max_lat+0.25) %>%
-      
-      # Using ESRI NatGeoWorldMap for background
-      addProviderTiles(providers$Esri.NatGeoWorldMap, options=providerTileOptions(minZoom=8.5)) %>%
-      
-      # Adding lines for subwatersheds
-      addPolygons(data=watershed_shp, color="black", fillColor="white", opacity=1, fillOpacity=0, weight=1, smoothFactor = 0.5) %>%
-      
-      # Adding polgyons for watersheds
-      addPolygons(data=merged_watershed_shp, color = "#333333", weight = 1.5, smoothFactor = 0.5,
-                  opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~palette(value),
-                  highlightOptions = highlightOptions(color = "white", weight = 2,
-                                                      bringToFront = TRUE),
-                  label=paste0(merged_watershed_shp$Watershed, " Watershed"),
-                  layerId=~Watershed) %>%
-      
-      # Adding polygon for watershed that the user has currently selected
-      addPolygons(data=p_selected_watershed, color="white", opacity=1, fillOpacity=0, weight=5,highlightOptions = highlightOptions(color = "white", weight = 5,
-                                                                                                                                 bringToFront = TRUE)) %>%
-      # Add legend
-      addLegend(position="topright", pal=palette, values=merged_watershed_shp$value, title="Precipitation (in)") %>%
-      
-      # Add markers and set visibility according to zoom level
-      addMarkers(data=sites, label=sites$Site, icon=siteIcon, group="markers") %>%
-      groupOptions("markers", zoomLevels=seq(10, 20, 0.25))
-    
-    pmap
-    
-  }) #renderLeaflet
+  # Precipitation Map
+  source("~/watershed/watershed_app/scripts/precip_map.R", local=T)
   
   
   
-  output$precip_plot <- renderPlot({
-    
-    #if no shape is clicked on map show data for all watersheds, but if a shape
-    #is clicked show data for only that watershed
-    if (is.null(input$precip_map_shape_click$id)) {
-      wdata <- watershed_data %>%
-        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
-        dplyr::select(Date, input$precip_var)
-      rdata <- rainfall_data %>%
-        filter(substr(Date, 1, 4) %in% input$precip_year)
-    } else {
-      wdata <- watershed_data %>%
-        filter(Watershed==input$precip_map_shape_click$id) %>%
-        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
-        dplyr::select(Date, input$precip_var)
-      rdata <- watershed_rain_data %>%
-        filter(substr(Date, 1, 4) %in% input$precip_year) %>%
-        dplyr::select(Date, input$precip_map_shape_click$id)
-    }
-    
-    #join rain data and watershed data by date
-    data <- left_join(rdata, wdata, by="Date") %>%
-      mutate(Year = substr(Date, 1, 4)) %>%
-      mutate(Week=week(Date))
-    year(data$Date) <- 0000
-    names(data) <- c("Date", "Rain", "Value", "Year", "Week")
-    data$Rain <- (data$Rain-min(data$Rain))/(max(data$Rain)-min(data$Rain)) #scale rain data
-    data$Value <- (data$Value-min(data$Value, na.rm=T))/(max(data$Value, na.rm=T)-min(data$Value, na.rm=T)) #scale watershed data
-    data <- data %>%
-      pivot_longer(cols=c("Rain", "Value"),
-                   names_to="Type",
-                   values_to="Value") %>%
-      filter(Date < "0-08-15" & Date > "0-04-10")
-    data$Type <- factor(data$Type, levels=c("Value", "Rain"))
-    
-    graph <- switch(input$precip_interval,
-                    
-      #graph showing weekly data              
-      "Week" = data %>%
-        group_by(Type, Week) %>%
-        summarize_at(c("Value"), mean, na.rm=T) %>%
-        ggplot(aes(x=Week, y=Value, fill=Type))+
-        geom_area(position="identity", alpha=0.7)+
-        xlab("Week")+
-        ylab("")+
-        scale_fill_manual(values=c("#339933", "#3366ff"))+
-        theme_minimal() +
-        theme(plot.background  = element_rect(color="#523178", size=4)),
-      
-      #graph showing daily data
-      "Date" = data %>%
-        group_by(Type, Date) %>%
-        summarize_at(c("Value"), mean, na.rm=T) %>%
-        ggplot(aes(x=Date, y=Value, fill=Type))+
-        geom_col(alpha=0.7)+
-        xlab("Date")+
-        ylab("")+
-        scale_fill_manual(values=c("#339933", "#3366ff"))+
-        theme_minimal() +
-        theme(plot.background  = element_rect(color="#523178", size=4))
-    )
-    
-    graph
-    
-  }) #renderPlot
+  # Precipitation Plot
+  source("~/watershed/watershed_app/scripts/precip_plot.R", local=T)
   
   
   
@@ -889,158 +585,22 @@ server <- function(input, output, session) {
   }
   
   # WQI
-  output$wqi <- renderGirafe({
-    
-    #a wqi for each watershed needs to be calculated, so a list of dataframes is
-    #created where each element is a dataframe with the data from a single watershed
-    data_vec <- list()
-    for (i in 1:8){
-      data <- watershed_data %>%
-        mutate(P=DRP*0.3261) %>%
-        filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-        filter(Watershed==watersheds[i])
-      data_vec[[i]] <- data
-    }
-    
-    
-    # F1 is calculated for each watershed in the list of dataframes
-    F1 <- sapply(data_vec, getF1)
-    
-    # F2 is calculated for each watershed in the list of dataframes
-    F2 <- sapply(data_vec, getF2)
-    
-    # F3 is calculated for each watershed in the list of dataframes
-    F3 <- sapply(data_vec, getF3)
-    
-    # Index is calculated for each watershed in the list of dataframes
-    index <- 100 - (sqrt(F1^2+F2^2+F3^2)/1.732)
-    
-    #column chart of WQI for each watershed
-    graph <- data.frame(Watershed=watersheds, WQI=index) %>%
-      ggplot(aes(y=reorder(Watershed, WQI), x=WQI))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(WQI, digits=4)), data_id=WQI))+
-      # coord_polar(theta="x", direction=1)+
-      theme_minimal()+
-      theme(plot.background  = element_rect(color="#523178", size=3.5))+
-      xlab("")+
-      ylab("")+
-      ggtitle("Water Quality Index by Watershed")
-    
-    girafe(ggobj = graph)
-    
-  })
-  
+  source("~/watershed/watershed_app/scripts/wqi.R", local=T)
   
   # Dissolved Oxygen Graph
-  output$DO_bar <- renderGirafe({
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-      group_by(Watershed) %>%
-      summarize_at(c("DO"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=DO))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(DO, digits=4), " mg O2/L"), data_id=DO), fill="#00cc00")+
-      
-      #threshold value for DO
-      geom_hline_interactive(aes(tooltip=5, data_id=5), yintercept = 5, color="red", size=2)+
-      geom_text(aes(4,5,label = "Threshold (Higher is Better)", vjust = -1), color="red", size=6)+
-      
-      ggtitle("Dissolved Oxygen Levels by Watershed")+
-      xlab("")+
-      ylab("Dissolved Oxygen")+
-      theme_minimal(base_size = 25) +
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-  })
+  source("~/watershed/watershed_app/scripts/DO_bar.R", local=T)
   
   #E. coli graph
-  output$E_coli_bar <- renderGirafe({
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-      group_by(Watershed) %>%
-      summarize_at(c("E_coli"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=E_coli))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", E_coli, " CFU"), data_id=E_coli), fill="#00cc00")+
-      
-      #threshold value for E. coli
-      geom_hline_interactive(aes(tooltip=235, data_id=235), yintercept = 235, color="red", size=2)+
-      geom_text(aes(4,235,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
-      
-      ggtitle("E. coli Levels by Watershed")+
-      xlab("")+
-      ylab("E. coli")+
-      theme_minimal(base_size = 25) +
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-  })
+  source("~/watershed/watershed_app/scripts/E_coli_bar.R", local=T)
   
   # Nitrate Graph
-  output$NO3_N_bar <- renderGirafe({
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-      group_by(Watershed) %>%
-      summarize_at(c("NO3_N"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=NO3_N))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(NO3_N, digits=4), " mg NO3-N/L"), data_id=NO3_N), fill="#00cc00")+
-      
-      #threshold value for nitrogen
-      geom_hline_interactive(aes(tooltip=3.5, data_id=3.5), yintercept = 3.5, color="red", size=2)+
-      geom_text(aes(4,3.5,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
-      
-      ggtitle("Nitrate Levels by Watershed")+
-      xlab("")+
-      ylab("Total Nitrogen")+
-      theme_minimal(base_size = 25) +
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-  })
+  source("~/watershed/watershed_app/scripts/NO3_N_bar.R", local=T)
   
   # Phosphorus Graph
-  output$DRP_bar <- renderGirafe({
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-      group_by(Watershed) %>%
-      mutate(P=0.3261*DRP) %>%
-      summarize_at(c("P"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=P))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", format(P, digits=3), " mg/L"), data_id=P), fill="#00cc00")+
-      
-      #threshold value for phosphorus
-      geom_hline_interactive(aes(tooltip=.18, data_id=.18), yintercept = .18, color="red", size=2)+
-      geom_text(aes(4,.18,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
-      
-      ggtitle("Phosphorus Levels by Watershed")+
-      xlab("")+
-      ylab("Total Phosphorus")+
-      theme_minimal(base_size = 25) +
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-  })
+  source("~/watershed/watershed_app/scripts/DRP_bar.R", local=T)
   
   # Turbidity Graph
-  output$Turb_bar <- renderGirafe({
-    graph <- watershed_data %>%
-      filter(substr(Date, 1, 4) %in% input$wqi_year) %>%
-      group_by(Watershed) %>%
-      summarize_at(c("Turb"), median, na.rm=T) %>%
-      ggplot(aes(x=Watershed, y=Turb))+
-      geom_col_interactive(aes(tooltip=paste0(Watershed, ": ", Turb, " NTU"), data_id=Turb), fill="#00cc00")+
-      
-      #threshold value for turbidity
-      geom_hline_interactive(aes(tooltip=25, data_id=25), yintercept = 25, color="red", size=2)+
-      geom_text(aes(4,25,label = "Threshold (Lower is Better)", vjust = 1.5), color="red", size=6)+
-      
-      ggtitle("Turbidity by Watershed")+
-      xlab("")+
-      ylab("Turbidity")+
-      theme_minimal(base_size = 25) +
-      theme(axis.text.x = element_text(angle = 15), plot.background  = element_rect(color="#523178", size=7))
-    
-    girafe(ggobj = graph, width_svg=11, height_svg=5)
-  })
+  source("~/watershed/watershed_app/scripts/Turb_bar.R", local=T)
   
 
   
