@@ -1,21 +1,7 @@
 ## Datasets
 
 ### CoeSTORET2002_2011.xlsx
-This data is from 2002-2011. It contains 2717 observations with the variables in the following table as well as a table outlining sampling methods.
-
-#### Variables and Units
-| Variable | Meaning | Units |
-|----------|---------|-------|
-| Site | Where sample was taken | N/A |
-| Date | Date sample was taken | N/A |
-| Time | Time sample was taken | N/A |
-| TSS | Total Suspended Solids | mg/L |
-| DRP | Dissolved Reactive Phosphorus | mg PO4/L |
-| Cl | Chloride | mg Cl/L |
-| NO3-N | Nitrate Nitrogen | mg NO3-N/L |
-| SO4/L | Sulfate | mg SO4/L |
-| E coli | Colony Forming Units of E. coli | CFU/100 mL |
-| Collector | Initials of Collector | N/A |
+This data is from 2002-2011. It contains 2717 observations as well as a table outlining sampling methods.
 
 #### Sampling Methods
 | Measurement | Method | Det. Limit |
@@ -30,58 +16,24 @@ This data is from 2002-2011. It contains 2717 observations with the variables in
 
 
 ### 2012-16data.xlsx
-This data is from 2012-2016. It contains 862 observations with the variables in the following table.
-
-#### Variables and Units
-| Variable | Meaning | Units |
-|----------|---------|-------|
-| Site | Where sample was taken | N/A |
-| Date | Date sample was taken | N/A |
-| Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen | mg O2/L |
-| Temp | Temperature of Water | Degrees Celsius |
-| pH | Acidity | Logarithmic Scale |
-| Cond | Conductivity | S/cm |
-| Turbidity | Clarity of Water | NTU |
-| TSS | Total Suspended Solids | mg/L |
-| DRP | Dissolved Reactive Phosphorus | mg PO4/L |
-| Cl | Chloride | mg Cl/L |
-| NO3-N | Nitrate Nitrogen | mg NO3-N/L |
-| SO4/L | Sulfate | mg SO4/L |
-| E coli | Colony Forming Units of E. coli | CFU/100 mL |
+This data is from 2012-2016 and contains 862 observations.
 
 
 ### 2017_21Data.xlsx
-This data is from 2017-2021. It contains 457 observations with the variables in the following table.
-
-#### Variables and Units
-#### Variables and Units
-| Variable | Meaning | Units |
-|----------|---------|-------|
-| Site | Where sample was taken | N/A |
-| Date | Date sample was taken | N/A |
-| Time | Time sample was taken | N/A |
-| DO | Dissolved Oxygen | mg O2/L |
-| Temp | Temperature of Water | Degrees Celsius |
-| pH | Acidity | Logarithmic Scale |
-| Cond | Conductivity | S/cm |
-| Turbidity | Clarity of Water | NTU |
-| TSS | Total Suspended Solids | mg/L |
-| DRP | Dissolved Reactive Phosphorus | mg PO4/L |
-| Cl | Chloride | mg Cl/L |
-| NO3-N | Nitrate Nitrogen | mg NO3-N/L |
-| SO4/L | Sulfate | mg SO4/L |
-| E coli | Colony Forming Units of E. coli | CFU/100 mL |
+This data is from 2017-2021 and contains 457 observations.
 
 
-### combined_data.csv
-This dataset is a combination of three datasets described above. It contains 3988 observations with the same 14 variables as the 2012-2016 and 2017-2021 datasets. The 2002-2011 dataset was given columns of NAs for the missing variables.
+### newdata.xlsx
+This dataset contains 2709 observations with many missing values from previous datasets.
 
 
-### combined_data_clean.csv
-This dataset contains 3987 observations and 15 variables. The watershed variable was added, the date column was fixed, appropriate values were set to be numeric, and some site names were changed. One row which had all NAs except for the site variable was removed.
+### IndianCreek2012-2021.xlsx
+This dataset contains 817 observations with up-to-date Indian Creek Watershed data.
 
-#### Variables and Units
+
+### combined_data_clean4.csv
+This dataset contains 3987 observations and 15 variables. The watershed variable was added, the date column was fixed, appropriate values were set to be numeric, and some site names were changed. One row which had all NAs except for the site variable was removed. This is the final dataset with all data added.
+
 #### Variables and Units
 | Variable | Meaning | Units |
 |----------|---------|-------|
@@ -106,3 +58,5 @@ This dataset contains 3987 observations and 15 variables. The watershed variable
 This dataset includes dates and rainfall estimates for every day from 2002 to 2021.
 
 
+### watershed_geo
+This is a folder containing all geographical data used to create the interactive maps.
